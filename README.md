@@ -26,3 +26,7 @@ TODO:
 -Set fine tune settings for 3D image in the presets.
 
 
+
+#### Update 07/04/2016
+- removed useless "resize" functionnality (causing problem with some ffmpeg version)
+- added "auto launch" tickbox, allow to auto trigger the file creation after rendering
