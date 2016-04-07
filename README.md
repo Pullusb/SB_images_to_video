@@ -11,9 +11,8 @@ Description:
 
 Add 4 buttons in the Properties>Output pannel
 
-When your render as image sequence is finished just hit "make video"
-
-the resize option take only the width of the scene in account and keep ratio (percentage is not considered) on some version of ffmpeg this option may not work (it is recommanded to open your console before launching)
+When your render as image sequence is finished just hit "make video".
+In the last version the resize option was replaced by an auto trigger tickbox, allowing to create a video right after the render.
 
 screenshot:
 
