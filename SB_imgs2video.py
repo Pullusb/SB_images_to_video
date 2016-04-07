@@ -21,14 +21,15 @@ bl_info = {
     "name": "imgs2video",
     "description": "generate a video from image sequence in output folder",
     "author": "Samuel Bernou ",
-    "version": (1, 0, 1),
-    "blender": (2, 74, 0),
+    "version": (1, 2, 0),
+    "blender": (2, 77, 0),
     "location": "Properties > Render > Output",
-    "warning": "resize option don't work on old ffmpeg version",
+    "warning": "",
     "wiki_url": "",
     "category": "System" }
 
 import bpy, os, re
+from bpy.app.handlers import persistent
 from time import time
 
 
@@ -41,13 +42,21 @@ bpy.types.Scene.MVquality = bpy.props.EnumProperty(items = [('FINAL', 'Final', '
                            description="quality settings",
                            default="FINAL")
 
-bpy.types.Scene.MVapplyRes = bpy.props.BoolProperty(name = "Resize", description = "Resize according to current Width (proportional)\n", default = False)
+bpy.types.Scene.MVrendertrigger = bpy.props.BoolProperty(name = "Auto launch", description = "Automatic trigger after render's end\n", default = False)
 
 bpy.types.Scene.MVopen = bpy.props.BoolProperty(name = "Open at finish", description = "Open video with player when creation over\n", default = False)
 
 Qfix = True #bool add suffix to name with quality
 
 ################## functions and operators
+
+@persistent
+def post_mkvideo(scene):
+    #if auto-launch is ticked
+    if scene.MVrendertrigger:
+        #launch mk video
+        bpy.ops.render.mk_video_operator()
+
 
 def IsImage(head, i):
     if not os.path.isfile(os.path.join(head,i)):
@@ -70,7 +79,8 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         layout = self.layout
         layout.label(
             text="This addon need an ffmpeg binary. "
-                 "Leave the field empty if ffmpeg is in your PATH.")
+                 "Leave the field empty if ffmpeg is in your PATH."
+                 " May not work if space are in path.")
         layout.prop(self, "path_to_ffmpeg")
 
 class MkVideoOperator(bpy.types.Operator):
@@ -94,20 +104,20 @@ class MkVideoOperator(bpy.types.Operator):
         binary = "ffmpeg"
         if path_to_ffmpeg:
             if os.path.exists(path_to_ffmpeg) and os.path.isfile(path_to_ffmpeg):
-                binary = path_to_ffmpeg
+                binary = '"' + path_to_ffmpeg + '"' #surrounding quote doesn't work in win10
             else:
                 pathErrorMsg = "wrong path to ffmpeg in the preference of addon " + __name__
                 self.report({'ERROR'}, pathErrorMsg)
                 return {'CANCELLED'}
 
         #debug prints
-        print ("path to ffmpeg:", path_to_ffmpeg)
-        print ("raw:", raw_outpath)
-        print ("abs:", outfolder)
-        print ("head:", head)
-        print("norm_head:", os.path.normpath(head))
-        print ("tail:", tail)
-        print ("base:", os.path.basename(head))
+        #print ("path to ffmpeg:", path_to_ffmpeg)
+        #print ("raw:", raw_outpath)
+        #print ("abs:", outfolder)
+        #print ("head:", head)
+        #print("norm_head:", os.path.normpath(head))
+        #print ("tail:", tail)
+        #print ("base:", os.path.basename(head))
 
         if os.path.exists(head):            
             imgFiles = [i for i in os.listdir(head) if IsImage(head, i)]
@@ -125,8 +135,6 @@ class MkVideoOperator(bpy.types.Operator):
         video_name = "" #override video name output (not used in final addon)
         encode = 'h264' #leave  emlpty quote ("") to encode in mpeg4 codec
         
-
-        applyres = scn.MVapplyRes
         quality = 10000
         Qnote = ""
         preset = 'medium'  # preset dispo : ultrafast,superfast, veryfast, faster, fast, medium, slow, slower, veryslow
@@ -145,17 +153,12 @@ class MkVideoOperator(bpy.types.Operator):
             else:
                 quality  = 20
                 print("no quality settings active! set to preset medium / quality10")
-                
-        resize = ""  #set to nothing
-        if applyres:
-            resize = "-vf 'scale=min(" + str(scn.render.resolution_x) + ":trunc(ow/a/2)*2' " #set height from width (keep ratio) and can't br 
 
         quality = str(quality)
 
         #debugs prints
-        print ("_"*10)
-        print ("apply resolution:", applyres)
-        print ("video output quality set to:", quality)
+        #print ("_"*10)
+        #print ("video output quality set to:", quality)
 
         if not video_name:
             if tail: #name was specified (name + numbers)
@@ -192,22 +195,22 @@ class MkVideoOperator(bpy.types.Operator):
                 
         #pre-assembly
         bypass = ' -y'
-        input = binary + ' -f image2 ' + '-start_number ' + start + ' -i'
+        init = binary + ' -f image2 ' + '-start_number ' + start + ' -i'
         srcPath = '"' + head + '/' + tail + '%04d' + ext + '"'
        
         if encode == 'h264':
             #cmd codec h264 quantizer
-            tune = resize + '-r ' + framerate + ' -crf ' + quality + ' -preset ' + preset + ' -pix_fmt yuv420p' + bypass
+            tune = '-r ' + framerate + ' -crf ' + quality + ' -preset ' + preset + ' -pix_fmt yuv420p' + bypass
         else:
             #cmd codec mpeg4 (classic but fast)
-            tune = resize + '-r ' + framerate + ' -vcodec mpeg4 -vb ' + quality + 'k' + bypass
+            tune = '-r ' + framerate + ' -vcodec mpeg4 -vb ' + quality + 'k' + bypass
         
         destPath = '"' + outloc + video_name + '.mp4"'
         
         #final command assembly
-        cmd = input + ' ' + srcPath + ' ' + tune + ' ' + destPath
+        cmd = init + ' ' + srcPath + ' ' + tune + ' ' + destPath
         print(cmd)
-        self.report({'INFO'}, "generating video file...")
+        self.report({'INFO'}, "generating video...")
         print ("_"*10)
         
         #launch
@@ -238,7 +241,7 @@ def MkVideoPanel(self, context):
     split.operator(MkVideoOperator.bl_idname, text = "Make video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
     
     row = layout.row(align=False)
-    row.prop(scn,'MVapplyRes')
+    row.prop(scn,'MVrendertrigger')
     row.prop(scn, 'MVopen')
 
 
@@ -248,8 +251,11 @@ def register():
     bpy.utils.register_class(imgs2videoPreferences)
     bpy.utils.register_class(MkVideoOperator)
     bpy.types.RENDER_PT_output.append(MkVideoPanel)
+    bpy.app.handlers.render_complete.append(post_mkvideo)
 
 def unregister():
+    if post_mkvideo in bpy.app.handlers.render_complete:
+        bpy.app.handlers.render_complete.remove(post_mkvideo) 
     bpy.utils.unregister_class(MkVideoOperator)
     bpy.types.RENDER_PT_output.remove(MkVideoPanel)
     bpy.utils.unregister_class(imgs2videoPreferences)
