@@ -11,8 +11,13 @@ Description:
 
 Add 4 buttons in the Properties>Output pannel
 
-When your render as image sequence is finished just hit "make video".
-In the last version the resize option was replaced by an auto trigger tickbox, allowing to create a video right after the render.
+When your image sequence render is finished, just choose the quality and hit *"make video"*.
+In the last version the resize option was replaced by an auto trigger tickbox, allowing to create the video automatically after the render.
+
+Choose between 3 preset:
+- Fast - fast encoding and light weight against quality (add "_L" suffix)
+- normal - good quality, average weight and encoding time
+- Final - slower - super quality and optimize weight (add "_F" suffix)
 
 screenshot:
 
@@ -20,11 +25,11 @@ screenshot:
 
 TODO:
 
--Currently blender freeze during the operation (not using subprocess)
-
 -Set fine tune settings for 3D image in the presets.
 
+#### Update 03/03/2017
 
+- Subprocess !  Blender is no more locked during the encoding, you're free to continue the work !
 
 #### Update 07/04/2016
 - removed useless "resize" functionnality (causing problem with some ffmpeg version)
