@@ -21,7 +21,7 @@ bl_info = {
     "name": "imgs2video",
     "description": "generate a video from image sequence in output folder",
     "author": "Samuel Bernou ",
-    "version": (1, 2, 0),
+    "version": (1, 3, 0),
     "blender": (2, 77, 0),
     "location": "Properties > Render > Output",
     "warning": "",
@@ -47,7 +47,7 @@ bpy.types.Scene.MVrendertrigger = bpy.props.BoolProperty(name = "Auto launch", d
 bpy.types.Scene.MVopen = bpy.props.BoolProperty(name = "Open at finish", description = "Open video with player when creation over\n", default = False)
 
 Qfix = True #bool add suffix to name with quality
-
+subpross= True
 ################## functions and operators
 
 @persistent
@@ -82,6 +82,7 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
                  "Leave the field empty if ffmpeg is in your PATH."
                  " May not work if space are in path.")
         layout.prop(self, "path_to_ffmpeg")
+
 
 class MkVideoOperator(bpy.types.Operator):
     """make video from imgs sequence with ffmpeg"""
@@ -214,15 +215,24 @@ class MkVideoOperator(bpy.types.Operator):
         print ("_"*10)
         
         #launch
-        startTime = time() #time.time() give the time in second since epoch
-        os.system(cmd)
-        endTime = time()
-        elapsedTime = str(endTime - startTime)
-        print ("encoding time :", elapsedTime, "seconds")
-        
-        outfileloc = os.path.normpath(head + '/../' + video_name + '.mp4')
-        message = "video created in: " + outfileloc
-        self.report({'INFO'}, message)
+        if subpross:
+            import subprocess
+            import shlex
+            cmd_list=shlex.split(cmd)
+            # print(cmd_list)
+            subprocess.Popen(cmd_list, shell=True, stderr=subprocess.STDOUT)
+
+        else:
+            startTime = time() #time.time() give the time in second since epoch
+            os.system(cmd)
+            endTime = time()
+            elapsedTime = str(endTime - startTime)
+            print ("encoding time :", elapsedTime, "seconds")
+            
+            outfileloc = os.path.normpath(head + '/../' + video_name + '.mp4')
+            message = "video created in: " + outfileloc
+            self.report({'INFO'}, message)
+
         if scn.MVopen:
             #os.system("start " + destPath)
             os.system(destPath)
