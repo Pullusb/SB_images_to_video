@@ -218,7 +218,11 @@ class MkVideoOperator(bpy.types.Operator):
         if subpross:
             import subprocess
             import shlex
-            cmd_list=shlex.split(cmd)
+
+            if scn.MVopen:
+                cmd = cmd + ' && ' + destPath
+
+            cmd_list=shlex.split(cmd)#shlex split keep quotes
             # print(cmd_list)
             subprocess.Popen(cmd_list, shell=True, stderr=subprocess.STDOUT)
 
@@ -233,9 +237,10 @@ class MkVideoOperator(bpy.types.Operator):
             message = "video created in: " + outfileloc
             self.report({'INFO'}, message)
 
-        if scn.MVopen:
-            #os.system("start " + destPath)
-            os.system(destPath)
+            if scn.MVopen:
+                #os.system("start " + destPath)
+                os.system(destPath)
+
         return {'FINISHED'}
 
 
