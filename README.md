@@ -2,8 +2,10 @@
 
 Add buttons in Blender UI to create a video from just rendered images sequence in one click
 
-[DEMO](https://youtu.be/R_W3Uh3KVGM)
-
+[DEMO Youtube](https://youtu.be/R_W3Uh3KVGM)  
+  
+**[Download latest](https://raw.githubusercontent.com/Pullusb/SB_imgs2video/master/SB_imgs2video.py)** (right click, save Target as)  
+  
 --------
 
 
