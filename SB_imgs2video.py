@@ -21,7 +21,7 @@ bl_info = {
     "name": "imgs2video",
     "description": "generate a video from image sequence in output folder",
     "author": "Samuel Bernou ",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (2, 77, 0),
     "location": "Properties > Render > Output",
     "warning": "",
@@ -171,6 +171,7 @@ class MkVideoOperator(bpy.types.Operator):
             else: #ended on a directory (only numbers)
                 print ("no tail")
                 video_name = os.path.basename(head)
+                print("video_name", video_name)#Dbg
             
         #get framerate
         framerate = str(scn.render.fps)
@@ -178,10 +179,14 @@ class MkVideoOperator(bpy.types.Operator):
 
         #get start and end frame
         start = str(scn.frame_start)
-        
-        outloc = os.path.normpath(head + "/../") + "/"
+
+
+        #print('head', head)
+        outloc = os.path.normpath(head + "/../")
+        if not outloc.endswith(('\\', '/')):
+            outloc = outloc + "/"
         print(outloc)
-        
+
                      
         if Qfix: #suffix file with quality chosen (ex: F/final, L/low/fast/, N/nothing)
             video_name = video_name + Qnote
