@@ -21,7 +21,7 @@ bl_info = {
     "name": "imgs2video",
     "description": "Generate a video from image sequence in output folder",
     "author": "Samuel Bernou ",
-    "version": (1, 3, 2),
+    "version": (1, 3, 3),
     "blender": (2, 80, 0),
     "location": "Properties > Render > Output",
     "warning": "",
@@ -69,6 +69,19 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
                  "Leave the field empty if ffmpeg is in your PATH."
                  " May not work if space are in path.")
         layout.prop(self, "path_to_ffmpeg")
+
+def tail_padding(name):
+    '''
+    return name with a ffmpeg padding marker of 4 digit
+    if # found, replace '#' padding by ffmpeg convention
+    '''
+
+    # ct = name.count('#')
+    if not '#' in name:
+        return name + '%04d'
+    r = re.search(r'\#{1,10}', name)
+    ct = len(r.group())
+    return re.sub(r'\#{1,10}', f'%{str(ct).zfill(2)}d', name)
 
 
 class MKVIDEO_OT_makeVideo(bpy.types.Operator):
@@ -152,9 +165,10 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
             if tail: #name was specified (name + numbers)
                 print ("tail found")
                 video_name = tail
-                #if tail ends with "_ - .", then clear it
-                if video_name.endswith("_") or video_name.endswith("-") or video_name.endswith("."):
-                    video_name = video_name[:-1]
+                ## if tail ends with "_ - .", then clear it
+                # if video_name.endswith(("_","-",".")):
+                #     video_name = video_name[:-1]
+                video_name = video_name.rstrip(('.#_-'))
             else: #ended on a directory (only numbers)
                 print ("no tail")
                 video_name = os.path.basename(head)
@@ -189,7 +203,8 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         #pre-assembly
         bypass = ' -y'
         init = binary + ' -f image2 ' + '-start_number ' + start + ' -i'
-        srcPath = '"' + head + '/' + tail + '%04d' + ext + '"'
+
+        srcPath = '"' + head + '/' + tail_padding(tail) + ext + '"'
        
         if encode == 'h264':
             #cmd codec h264 quantizer
@@ -216,7 +231,7 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
 
             cmd_list=shlex.split(cmd)#shlex split keep quotes
             # print(cmd_list)
-            subprocess.Popen(cmd_list, shell=True, stderr=subprocess.STDOUT)
+            subprocess.Popen(cmd_list, shell=False, stderr=subprocess.STDOUT)#shell = True gave problem...
 
         else:
             startTime = time() #time.time() give the time in second since epoch
