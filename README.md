@@ -31,6 +31,11 @@ TODO:
 
 -Set fine tune settings for 3D image in the presets.
 
+#### Update 8/01/2020
+
+- handle padding in filename (e.g: img_####) correctly
+- shell True -> False in subprocess Popen. has problem on a linux machine
+
 #### Update 15/09/2019
 
 - 2.8 version yay !
