@@ -6,12 +6,19 @@ Add buttons in Blender UI to create a video from just rendered images sequence i
   
 **[Download latest](https://raw.githubusercontent.com/Pullusb/SB_imgs2video/master/SB_imgs2video.py)** (right click, save Target as)
 
-**[Download older (2.7)](https://raw.githubusercontent.com/Pullusb/SB_imgs2video/master/SB_imgs2video_279.py)** (right click, save Target as)
-  
---------
+For older blender 2.7 version go [here](https://github.com/Pullusb/SB_blender_addons_old_2_7)
+<!-- **[Download older (2.7)](https://raw.githubusercontent.com/Pullusb/SB_imgs2video/master/SB_imgs2video_279.py)** (right click, save Target as) -->
 
 
-Description:
+If you want to support me you can go on:
+ - my [gumroad](https://pullusb.gumroad.com) store.
+ - my [blender market](https://blendermarket.com/creators/pullup) page
+ - cehck other mean to support [here](http://www.samuelbernou.fr/donate).
+
+---
+
+
+### Description
 
 Add 4 buttons in the Properties>Output pannel
 
@@ -27,23 +34,6 @@ screenshot:
 
 ![Output pannel with imgs2video Addon enabled](http://www.samuelbernou.fr/imgs/git/Addon_imgs2video_screenshot_demo)
 
-TODO:
+<!-- TODO:
 
--Set fine tune settings for 3D image in the presets.
-
-#### Update 8/01/2020
-
-- handle padding in filename (e.g: img_####) correctly
-- shell True -> False in subprocess Popen. has problem on a linux machine
-
-#### Update 15/09/2019
-
-- 2.8 version yay !
-
-#### Update 03/03/2017
-
-- Subprocess !  Blender is no more locked during the encoding, you're free to continue the work !
-
-#### Update 07/04/2016
-- removed useless "resize" functionnality (causing problem with some ffmpeg version)
-- added "auto launch" tickbox, allow to auto trigger the file creation after rendering
+-Set fine tune settings for 3D image in the presets. -->

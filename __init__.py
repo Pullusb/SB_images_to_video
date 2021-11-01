@@ -19,13 +19,13 @@ samuel.bernou@outlook.com
 
 bl_info = {
     "name": "imgs2video",
-    "description": "generate a video from image sequence in output folder",
+    "description": "Generate a video from image sequences",
     "author": "Samuel Bernou ",
-    "version": (1, 3, 1),
-    "blender": (2, 77, 0),
+    "version": (1, 4, 0),
+    "blender": (2, 80, 0),
     "location": "Properties > Render > Output",
     "warning": "",
-    "wiki_url": "",
+    "doc_url": "",
     "category": "System" }
 
 import bpy, os, re
@@ -33,21 +33,8 @@ from bpy.app.handlers import persistent
 from time import time
 
 
-################## Initialize properties
-
-bpy.types.Scene.MVquality = bpy.props.EnumProperty(items = [('FINAL', 'Final', 'slower - super quality and optimize weight (add "_F" suffix)'), #[('ENUM1', 'Enum1', 'enum prop 1'),
-                                    ('NORMAL', 'Normal', 'good quality and average weight and encoding time'),
-                                    ('FAST', 'Fast', 'fast encoding and light weight against quality (add "_L" suffix)')],
-                           name="Quality",
-                           description="quality settings",
-                           default="FINAL")
-
-bpy.types.Scene.MVrendertrigger = bpy.props.BoolProperty(name = "Auto launch", description = "Automatic trigger after render's end\n", default = False)
-
-bpy.types.Scene.MVopen = bpy.props.BoolProperty(name = "Open at finish", description = "Open video with player when creation over\n", default = False)
-
 Qfix = True #bool add suffix to name with quality
-subpross= True
+subpross = True
 ################## functions and operators
 
 @persistent
@@ -55,22 +42,22 @@ def post_mkvideo(scene):
     #if auto-launch is ticked
     if scene.MVrendertrigger:
         #launch mk video
-        bpy.ops.render.mk_video_operator()
+        bpy.ops.render.make_video()
 
 
 def IsImage(head, i):
     if not os.path.isfile(os.path.join(head,i)):
         return False
-    imgsTypeList = ["PNG", "JPG", "BMP", "TIFF", "JPEG"]
+    imgsTypeList = ["png", "jpg", "bmp", "tiff", "jpeg", "exr", "tga"]
     for ext in imgsTypeList:
-        if i.upper().endswith(ext):
-            return (True)
-    return (False)
+        if i.lower().endswith(ext):
+            return True
+    return False
 
 class imgs2videoPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
-    path_to_ffmpeg = bpy.props.StringProperty(
+    path_to_ffmpeg : bpy.props.StringProperty(
         name="Path to ffmpeg binary",
         subtype='FILE_PATH',
         )
@@ -83,10 +70,23 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
                  " May not work if space are in path.")
         layout.prop(self, "path_to_ffmpeg")
 
+def tail_padding(name):
+    '''
+    return name with a ffmpeg padding marker of 4 digit
+    if # found, replace '#' padding by ffmpeg convention
+    '''
 
-class MkVideoOperator(bpy.types.Operator):
+    # ct = name.count('#')
+    if not '#' in name:
+        return name + '%04d'
+    r = re.search(r'\#{1,10}', name)
+    ct = len(r.group())
+    return re.sub(r'\#{1,10}', f'%{str(ct).zfill(2)}d', name)
+
+
+class MKVIDEO_OT_makeVideo(bpy.types.Operator):
     """make video from imgs sequence with ffmpeg"""
-    bl_idname = "render.mk_video_operator"
+    bl_idname = "render.make_video"
     bl_label = "imgs to video"
     bl_options = {'REGISTER'}
     
@@ -99,7 +99,7 @@ class MkVideoOperator(bpy.types.Operator):
         head, tail = os.path.split(outfolder) #split output path
 
         #get the path in user preferences field
-        preferences = context.user_preferences.addons[__name__].preferences
+        preferences = context.preferences.addons[__name__].preferences
         path_to_ffmpeg = preferences.path_to_ffmpeg
 
         binary = "ffmpeg"
@@ -165,9 +165,10 @@ class MkVideoOperator(bpy.types.Operator):
             if tail: #name was specified (name + numbers)
                 print ("tail found")
                 video_name = tail
-                #if tail ends with "_ - .", then clear it
-                if video_name.endswith("_") or video_name.endswith("-") or video_name.endswith("."):
-                    video_name = video_name[:-1]
+                ## if tail ends with "_ - .", then clear it
+                # if video_name.endswith(("_","-",".")):
+                #     video_name = video_name[:-1]
+                video_name = video_name.rstrip(('.#_-'))
             else: #ended on a directory (only numbers)
                 print ("no tail")
                 video_name = os.path.basename(head)
@@ -202,7 +203,8 @@ class MkVideoOperator(bpy.types.Operator):
         #pre-assembly
         bypass = ' -y'
         init = binary + ' -f image2 ' + '-start_number ' + start + ' -i'
-        srcPath = '"' + head + '/' + tail + '%04d' + ext + '"'
+
+        srcPath = '"' + head + '/' + tail_padding(tail) + ext + '"'
        
         if encode == 'h264':
             #cmd codec h264 quantizer
@@ -229,7 +231,7 @@ class MkVideoOperator(bpy.types.Operator):
 
             cmd_list=shlex.split(cmd)#shlex split keep quotes
             # print(cmd_list)
-            subprocess.Popen(cmd_list, shell=True, stderr=subprocess.STDOUT)
+            subprocess.Popen(cmd_list, shell=False, stderr=subprocess.STDOUT)#shell = True gave problem...
 
         else:
             startTime = time() #time.time() give the time in second since epoch
@@ -249,16 +251,16 @@ class MkVideoOperator(bpy.types.Operator):
         return {'FINISHED'}
 
 
-
 ################## Pannel Integration
 
 def MkVideoPanel(self, context):
     """Video pannels"""
     scn = bpy.context.scene
     layout = self.layout
-    split = layout.split(percentage=.5, align=True)
+    layout.use_property_split = True
+    split = layout.split(factor=.5, align=True)
     split.prop(scn, 'MVquality')
-    split.operator(MkVideoOperator.bl_idname, text = "Make video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
+    split.operator(MKVIDEO_OT_makeVideo.bl_idname, text = "Make video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
     
     row = layout.row(align=False)
     row.prop(scn,'MVrendertrigger')
@@ -268,17 +270,35 @@ def MkVideoPanel(self, context):
 ################## Registration
 
 def register():
+    ##  Initialize properties
+
+    bpy.types.Scene.MVquality = bpy.props.EnumProperty(items = [('FINAL', 'Final', 'slower - super quality and optimize weight (add "_F" suffix)'), #[('ENUM1', 'Enum1', 'enum prop 1'),
+                                        ('NORMAL', 'Normal', 'good quality and average weight and encoding time'),
+                                        ('FAST', 'Fast', 'fast encoding and light weight against quality (add "_L" suffix)')],
+                            name="Quality",
+                            description="quality settings",
+                            default="FINAL")
+
+    bpy.types.Scene.MVrendertrigger = bpy.props.BoolProperty(name = "Auto launch", description = "Automatic trigger after render's end\n", default = False)
+
+    bpy.types.Scene.MVopen = bpy.props.BoolProperty(name = "Open at finish", description = "Open video with player when creation over\n", default = False)
+
     bpy.utils.register_class(imgs2videoPreferences)
-    bpy.utils.register_class(MkVideoOperator)
+    bpy.utils.register_class(MKVIDEO_OT_makeVideo)
     bpy.types.RENDER_PT_output.append(MkVideoPanel)
     bpy.app.handlers.render_complete.append(post_mkvideo)
 
 def unregister():
     if post_mkvideo in bpy.app.handlers.render_complete:
         bpy.app.handlers.render_complete.remove(post_mkvideo) 
-    bpy.utils.unregister_class(MkVideoOperator)
+    bpy.utils.unregister_class(MKVIDEO_OT_makeVideo)
     bpy.types.RENDER_PT_output.remove(MkVideoPanel)
     bpy.utils.unregister_class(imgs2videoPreferences)
+
+    ##  delete properties
+    del bpy.types.Scene.MVquality
+    del bpy.types.Scene.MVrendertrigger
+    del bpy.types.Scene.MVopen
 
     
 if __name__ == "__main__":
