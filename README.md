@@ -1,4 +1,4 @@
-# SB_imgs2video
+# SB imgs2video
 
 Add buttons in Blender UI to create a video from just rendered images sequence in one click
 
@@ -37,6 +37,7 @@ Choose between 3 preset:
 - _Final_ - slower - super quality and optimize weight (add "_F" suffix)
 
 
+Old screenshot : 
 ![Output pannel with imgs2video Addon enabled](http://www.samuelbernou.fr/imgs/git/Addon_imgs2video_screenshot_demo)
 
 <!-- TODO:

@@ -1,5 +1,8 @@
 # Changelog
 
+1.5.0
+
+- feat: new montage mode (beta, basic behavior), generate a scene where the sequence you just rendered are imported in VSE
 
 1.4.0 - 2021-11-01
 
