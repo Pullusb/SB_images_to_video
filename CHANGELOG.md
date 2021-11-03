@@ -1,5 +1,11 @@
 # Changelog
 
+1.6.0
+
+- code: huge refactor. True multifile mode.
+- ui: added montge scene creation button
+- fix: scene creation operator when scene exists
+
 1.5.0
 
 - feat: new montage mode (beta, basic behavior), generate a scene where the sequence you just rendered are imported in VSE
