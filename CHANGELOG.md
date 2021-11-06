@@ -1,5 +1,11 @@
 # Changelog
 
+
+1.7.0
+
+- feat: Auto mix down audio in generated video (When audio strip in VSE or Speaker in Scene)
+- code: Use now directly list to subprocess
+
 1.6.0
 
 - code: huge refactor. True multifile mode.

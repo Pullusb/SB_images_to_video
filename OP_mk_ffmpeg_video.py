@@ -1,13 +1,8 @@
-import bpy, os, re
+import bpy
+import os
 from pathlib import Path
-from time import time
 import subprocess
-import shlex
-
 from . import fn
-
-Qfix = True #bool add suffix to name with quality
-
 
 class MKVIDEO_OT_makeVideo(bpy.types.Operator):
     """make video from imgs sequence with ffmpeg"""
@@ -16,24 +11,22 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
     bl_options = {'REGISTER'}
     
     def execute(self, context):
-
-        C = bpy.context
         scn = bpy.context.scene
 
         prefs = fn.get_prefs()
-        #get the path in user preferences field
+        
+        # get the path in user preferences field
         path_to_ffmpeg = prefs.path_to_ffmpeg
         
         settings = scn.mkvideo_prop
 
-        raw_outpath = scn.render.filepath 
-        outfolder = bpy.path.abspath(scn.render.filepath) #get absolute path of output location
-        head, tail = os.path.split(outfolder) #split output path
+        outfolder = bpy.path.abspath(scn.render.filepath) # get absolute path of output location
+        head, tail = os.path.split(outfolder) # split output path
 
         binary = "ffmpeg"
         if path_to_ffmpeg:
             if os.path.exists(path_to_ffmpeg) and os.path.isfile(path_to_ffmpeg):
-                binary = '"' + path_to_ffmpeg + '"' #surrounding quote doesn't work in win10
+                binary = path_to_ffmpeg
             else:
                 self.report({'ERROR'}, "Wrong path to ffmpeg in the preference of addon")
                 return {'CANCELLED'}
@@ -49,12 +42,12 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
             self.report({'ERROR'}, f'path not exist: {head}')
             return {'CANCELLED'}
        
-        video_name = "" #override video name output (not used in final addon)
-        encode = 'h264' #leave  emlpty quote ("") to encode in mpeg4 codec
+        video_name = "" # override video name output (not used in final addon)
+        encode = 'h264' # leave  emlpty quote ("") to encode in mpeg4 codec
         
         quality = 10000
         Qnote = ""
-        preset = 'medium'  # preset dispo : ultrafast,superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+        preset = 'medium' # preset dispo : ultrafast,superfast, veryfast, faster, fast, medium, slow, slower, veryslow
         if encode == 'h264':
             if settings.quality == 'FINAL': #very slow but have great quality with a fair file weight
                 preset = 'veryslow'
@@ -73,23 +66,17 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
 
         quality = str(quality)
 
-        #debugs prints
-        #print ("_"*10)
-        #print ("video output quality set to:", quality)
-
         if not video_name:
             if tail: #name was specified (name + numbers)
                 print ("tail found")
                 video_name = tail
                 ## if tail ends with "_ - .", then clear it
-                # if video_name.endswith(("_","-",".")):
-                #     video_name = video_name[:-1]
                 video_name = video_name.rstrip(('.#_-'))
             else: #ended on a directory (only numbers)
                 print ("no tail")
                 video_name = os.path.basename(head)
                 print("video_name", video_name)#Dbg
-            
+        
         #get framerate
         framerate = str(scn.render.fps)
         ext = scn.render.file_extension
@@ -97,13 +84,11 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         #get start and end frame
         start = str(scn.frame_start)
 
-
         #print('head', head)
         outloc = os.path.normpath(head + "/../")
         if not outloc.endswith(('\\', '/')):
             outloc = outloc + "/"
         print(outloc)
-
                      
         if prefs.note_suffix: #suffix file with quality chosen (ex: F/final, L/low/fast/, N/nothing)
             video_name = video_name + Qnote
@@ -113,36 +98,60 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         if check: #versionning of the file if already exists
             video_name = video_name + "_" + str(len(check) + 1)
 
-        #construct command
-        print ("_"*10)        
+        sound = False
+        # Sound check
+        if fn.sound_in_scene():
+            # Mix down audio
+            print('sound detected in scene')
+            audio_path = f'{outloc}scn_audio.wav'
+            audio_path = str(Path(audio_path))
+            print('audio_path: ', audio_path)
+            ret = bpy.ops.sound.mixdown('INVOKE_DEFAULT',
+                filepath=audio_path, check_existing=False, relative_path=False, container='WAV', codec='PCM', format='S16')
+            if 'FINISHED' in ret:
+                sound = True
                 
-        #pre-assembly
-        bypass = ' -y'
-        init = binary + ' -f image2 ' + '-start_number ' + start + ' -i'
+        # Construct commnand
+        bypass = '-y'
+        init = [binary, '-f', 'image2', '-start_number', start, '-i']
 
-        srcPath = '"' + head + '/' + fn.tail_padding(tail) + ext + '"'
+        src_path = [head + '/' + fn.tail_padding(tail) + ext]
        
         if encode == 'h264':
             #cmd codec h264 quantizer
-            tune = '-r ' + framerate + ' -crf ' + quality + ' -preset ' + preset + ' -pix_fmt yuv420p' + bypass
+            tune = ['-r', framerate, '-crf', quality, '-preset', preset, '-pix_fmt', 'yuv420p', bypass]
         else:
             #cmd codec mpeg4 (classic but fast)
-            tune = '-r ' + framerate + ' -vcodec mpeg4 -vb ' + quality + 'k' + bypass
+            tune = ['-r', framerate, '-vcodec', 'mpeg4', '-vb', f'{quality}k', bypass]
         
-        destPath = '"' + outloc + video_name + '.mp4"'
+        dest_path = [outloc + video_name + '.mp4']
         
-        #final command assembly
-        cmd = init + ' ' + srcPath + ' ' + tune + ' ' + destPath
-        print(cmd)
-        self.report({'INFO'}, "generating video...")
-        print ("_"*10)
-        
-        if settings.open:
-            cmd = cmd + ' && ' + destPath
+        sound_cmd = []
+        if sound:
+            sound_cmd = ['-i', audio_path, '-map', '0', '-map', '1', '-shortest'] # <- shortest ?
 
-        cmd_list=shlex.split(cmd)#shlex split keep quotes
-        # print(cmd_list)
-        subprocess.Popen(cmd_list, shell=False, stderr=subprocess.STDOUT)#shell = True gave problem...
+        cmd = init + src_path + sound_cmd + tune + dest_path
+
+        self.report({'INFO'}, "Generating video...")
+        # print ("_"*10)
+        
+        if sound:
+            ## add delete temporary sound command (depending on filesystem)
+            my_os = fn.detect_OS()
+            if my_os == 'windows':
+                cmd += ['&&', 'del', audio_path]
+            else:
+                cmd += ['&&', 'rm', audio_path]
+
+        if settings.open:
+            cmd += ['&&'] + dest_path
+
+        print('-- ffmpeg command --')
+        print(' '.join(cmd))
+        if sound:
+            subprocess.Popen(cmd, shell=True, stderr=subprocess.STDOUT)
+        else:
+            subprocess.Popen(cmd, shell=False, stderr=subprocess.STDOUT) # shell = True gave problem in older version...
 
         return {'FINISHED'}
 

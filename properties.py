@@ -27,6 +27,11 @@ class MKVIDEO_PGT_settings(bpy.types.PropertyGroup):
         name="Open At Finish", default=False,
         description = "Open video with player when creation over\n",
         )
+    
+    sound : BoolProperty(
+        name="Sound", default=True,
+        description = "Mix Sound ",
+        )
 
 def register():
     bpy.utils.register_class(MKVIDEO_PGT_settings)

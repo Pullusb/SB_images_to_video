@@ -7,6 +7,24 @@ def get_prefs():
     return bpy.context.preferences.addons[__package__].preferences
 
 
+def detect_OS():
+    """return str of os name : linux, windows, mac (None if undetected)"""
+    from sys import platform
+    myOS = platform
+
+    if myOS.startswith('linux') or myOS.startswith('freebsd'):# linux
+        return ("linux")
+
+    elif myOS.startswith('win'):# Windows
+        return ("windows")
+
+    elif myOS == "darwin":# OS X
+        return ('mac')
+
+    else:# undetected
+        print("Cannot detect OS, python 'sys.platform' give :", myOS)
+        return None
+
 ### ffmpeg video functions
 
 def is_image(head, i):
@@ -97,3 +115,12 @@ def add_frames_to_scene(scn, fp, strip_name=None, channel=None, start_frame=None
        seq.elements.append(img.name)
     
     return seq
+
+def sound_in_scene():
+    scn = bpy.context.scene
+    vse = scn.sequence_editor
+    if vse and any(s.type == 'SOUND' and not s.mute for s in vse.sequences_all):
+        return True
+    if any(o.type == 'SPEAKER' and not o.hide_viewport and o.data and o.data.sound and not o.data.muted for o in scn.objects):
+        return True
+    return False

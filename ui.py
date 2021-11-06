@@ -18,6 +18,10 @@ def mk_video_panel(self, context):
     row.prop(settings, 'quality')
     row.operator("render.make_video", text = "Make video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
     
+    ## Sound options ? (always On)
+    # row = col.row(align=True)
+    # row.prop(settings, 'sound')
+
     row = col.row(align=False)
     row.prop(settings, 'rendertrigger')
     row.prop(settings, 'open')
