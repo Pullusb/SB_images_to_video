@@ -58,6 +58,7 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
         layout.label(text='Montage scene already exists, choose action:')
         layout.prop(self, 'mode')
 
+    @staticmethod
     def apply_settings(src_scn, dest_scn):
         set_video_export_settings(dest_scn)
         dest_scn.render.fps = src_scn.render.fps
