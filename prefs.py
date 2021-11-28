@@ -1,35 +1,15 @@
-import bpy, os, re
+import bpy, os, re, sys
 from pathlib import Path
 from time import time
 import subprocess
 import shlex
 
+from . import fn
 from bpy.props import (StringProperty,
                         IntProperty,
                         BoolProperty,
                         EnumProperty,
                         FloatProperty)
-
-class MKVIDEO_OT_check_ffmpeg(bpy.types.Operator):
-    """check if ffmpeg is in path"""
-    bl_idname = "mkvideo.check_ffmpeg"
-    bl_label = "Check ffmpeg in system path"
-    bl_options = {'REGISTER', 'INTERNAL'}
-    
-    def invoke(self, context, event):
-        import  shutil
-        self.ok = shutil.which('ffmpeg')
-        return context.window_manager.invoke_props_dialog(self, width=250)
-    
-    def draw(self, context):
-        layout = self.layout
-        if self.ok:
-            layout.label(text='Ok ! ffmpeg is in system PATH', icon='INFO')
-        else:
-            layout.label(text='ffmeg is not in system PATH', icon='CANCEL')
-
-    def execute(self, context):
-        return {'FINISHED'}
 
 class imgs2videoPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
@@ -289,7 +269,12 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         
         row = col.row()
         row.label(text="Leave field empty if ffmpeg is in system PATH")
-        row.operator('mkvideo.check_ffmpeg', text='Check if ffmpeg in PATH', icon='PLUGIN')
+        row.operator('video.check_ffmpeg', text='Check ffmpeg', icon='PLUGIN')
+        if sys.platform.startswith('win'):
+            row = col.row()
+            row.label(text="FFmpeg can be automatically downloaded")
+            row.operator('video.download_ffmpeg', text='Auto-install FFmpeg (windows)', icon='IMPORT')
+        
         # col.label(text="May not work if space are in path.")
         box.prop(self, "path_to_ffmpeg")
         
@@ -324,8 +309,18 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
                 col.prop(self, "audio_volume", slider=True)
 
 
+class MKVIDEO_OT_open_addon_prefs(bpy.types.Operator):
+    bl_idname = "mkvideo.open_addon_prefs"
+    bl_label = "Open Addon Prefs"
+    bl_description = "Open user preferences window in addon tab and prefill the search with addon name"
+    bl_options = {"REGISTER"}
+
+    def execute(self, context):
+        fn.open_addon_prefs()
+        return {'FINISHED'}
+
 classes = (
-MKVIDEO_OT_check_ffmpeg,
+MKVIDEO_OT_open_addon_prefs,
 imgs2videoPreferences,
 )
 

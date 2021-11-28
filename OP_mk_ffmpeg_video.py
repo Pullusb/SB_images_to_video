@@ -12,9 +12,8 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
     
     def execute(self, context):
         scn = bpy.context.scene
-
         prefs = fn.get_prefs()
-        
+
         # get the path in user preferences field
         path_to_ffmpeg = prefs.path_to_ffmpeg
         
@@ -23,14 +22,31 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         outfolder = bpy.path.abspath(scn.render.filepath) # get absolute path of output location
         head, tail = os.path.split(outfolder) # split output path
 
-        binary = "ffmpeg"
+        ## get ffmpeg bin
+        ffbin = Path(__file__).parent / 'ffmpeg.exe'
+
         if path_to_ffmpeg:
             if os.path.exists(path_to_ffmpeg) and os.path.isfile(path_to_ffmpeg):
                 binary = path_to_ffmpeg
             else:
                 self.report({'ERROR'}, "Wrong path to ffmpeg in the preference of addon")
+                return {'CANCELLED'}        
+        
+        elif fn.detect_OS() == 'windows' and ffbin.exists:
+            binary = str(ffbin)
+        
+        else:
+            import shutil
+            if not shutil.which('ffmpeg'):
+                fn.show_message_box(_title = "No ffmpeg found", _icon = 'INFO',
+                    _message =[
+                            "ffmpeg is needed for this action, see addon prefs",
+                            ["mkvideo.open_addon_prefs", "Click here to open addon prefs", "PREFERENCES"] # TOOL_SETTINGS
+                        ])
                 return {'CANCELLED'}
-
+            binary = "ffmpeg"
+        
+        ## Check image in output path
         if os.path.exists(head):            
             imgFiles = [i for i in os.listdir(head) if fn.is_image(head, i)]
             if imgFiles:

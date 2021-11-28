@@ -21,7 +21,7 @@ bl_info = {
     "name": "imgs2video",
     "description": "Generate a video from image sequences",
     "author": "Samuel Bernou ",
-    "version": (1, 7, 0),
+    "version": (1, 8, 0),
     "blender": (2, 91, 0),
     "location": "Properties > Render > Output",
     "warning": "",
@@ -36,6 +36,7 @@ from . import properties
 from . import prefs
 from . import OP_mk_vse_montage
 from . import OP_mk_ffmpeg_video
+from . import OP_get_ffmpeg
 from . import ui
 
 @persistent
@@ -49,12 +50,14 @@ def register():
     prefs.register()
     OP_mk_vse_montage.register()
     OP_mk_ffmpeg_video.register()
+    OP_get_ffmpeg.register()
     ui.register()
 
     bpy.app.handlers.render_complete.append(post_mkvideo)
 
 def unregister():
     ui.unregister()
+    OP_get_ffmpeg.unregister()
     OP_mk_ffmpeg_video.unregister()
     OP_mk_vse_montage.unregister()
     prefs.unregister()

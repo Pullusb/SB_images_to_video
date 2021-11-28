@@ -6,6 +6,17 @@ from pathlib import Path
 def get_prefs():
     return bpy.context.preferences.addons[__package__].preferences
 
+def open_addon_prefs():
+    '''Open addon prefs windows with focus on current addon'''
+    from .__init__ import bl_info
+    wm = bpy.context.window_manager
+    wm.addon_filter = 'All'
+    if not 'COMMUNITY' in  wm.addon_support: # reactivate community
+        wm.addon_support = set([i for i in wm.addon_support] + ['COMMUNITY'])
+    wm.addon_search = bl_info['name']
+    bpy.context.preferences.active_section = 'ADDONS'
+    bpy.ops.preferences.addon_expand(module=__package__)
+    bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
 
 def detect_OS():
     """return str of os name : linux, windows, mac (None if undetected)"""
@@ -24,6 +35,30 @@ def detect_OS():
     else:# undetected
         print("Cannot detect OS, python 'sys.platform' give :", myOS)
         return None
+
+def show_message_box(_message = "", _title = "Message Box", _icon = 'INFO'):
+    '''Show message box with element passed as string or list
+    if _message if a list of lists:
+        if sublist have 2 element:
+            considered a label [text,icon]
+        if sublist have 3 element:
+            considered as an operator [ops_id_name, text, icon]
+    '''
+
+    def draw(self, context):
+        for l in _message:
+            if isinstance(l, str):
+                self.layout.label(text=l)
+            else:
+                if len(l) == 2: # label with icon
+                    self.layout.label(text=l[0], icon=l[1])
+                elif len(l) == 3: # ops
+                    self.layout.operator_context = "INVOKE_DEFAULT"
+                    self.layout.operator(l[0], text=l[1], icon=l[2], emboss=False) # <- True highligh the entry
+    
+    if isinstance(_message, str):
+        _message = [_message]
+    bpy.context.window_manager.popup_menu(draw, title = _title, icon = _icon)
 
 ### ffmpeg video functions
 

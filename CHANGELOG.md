@@ -1,6 +1,11 @@
 # Changelog
 
 
+1.8.0
+
+- feat: if no ffmpeg found, pop-up a window to do in addon pref
+- feat: ffmpeg can be auto-downloaded (windows) from addon preferences
+
 1.7.0
 
 - feat: Auto mix down audio in generated video (When audio strip in VSE or Speaker in Scene)
