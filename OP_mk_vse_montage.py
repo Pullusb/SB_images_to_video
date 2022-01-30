@@ -2,6 +2,7 @@ import bpy
 import os
 import re
 from pathlib import Path
+from bpy_extras.io_utils import ImportHelper
 from . import fn
 
 def set_video_export_settings(scn):
@@ -21,8 +22,12 @@ def set_video_export_settings(scn):
     scn.view_settings.view_transform = 'Standard'
     scn.render.use_sequencer = True
 
+def get_resolution(f):
+    img = bpy.data.images.load(f, check_existing=True)
+    return img.size
+
 class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
-    """Create a montage VSE scene with rendered images"""
+    """Create a montage VSE scene with rendered images and settings from current scene"""
     bl_idname = "mkvideo.gen_montage_scene"
     bl_label = "Generate Montage Scene"
     bl_options = {'REGISTER'}
@@ -163,8 +168,101 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
+    """Create a montage VSE scene from a chosen image sequence"""
+    bl_idname = "mkvideo.gen_montage_from_folder"
+    bl_label = "Generate Montage From Folder"
+    bl_options = {'REGISTER'}
+
+    # mode : bpy.props.EnumProperty(
+    #     name='Montage scene already exists',
+    #     default='REPLACE_SCENE',
+    #     description='Choose what to do with existing scene',
+    #     items=(
+    #         ('REPLACE_SCENE', 'Replace scene', 'Delete montage scene and start over'),
+    #         ('REPLACE_CONTENT', 'Replace content', 'Replace the scene VSE content but do not touch scene settings'),
+    #         ),)
+
+    # Overwrite
+    
+    # Set FPS manually
+    fps : bpy.props.IntProperty(name='Frame Rate', default=24, min=1, description='Set frame rate of new scene')
+
+    overwrite_scn : bpy.props.BoolProperty(name='Overwrite Existing Scene', default=False, 
+        description='If scene already exists, overwrite instead of abort (scene name: "folder name" + "_edit")')
+    
+    # directory = bpy.props.StringProperty(subtype='DIR_PATH')
+    
+    filepath : bpy.props.StringProperty(
+        name="File Path", 
+        description="File path used for import", 
+        maxlen= 1024)
+    
+    def execute(self, context):
+        # fp = context.scene.render.filepath
+        fp = self.filepath
+
+        outpath = Path(fp)
+        outfolder = outpath if outpath.is_dir() else outpath.parent
+
+        files = fn.get_files(outpath) # list of scandir entry
+        
+        if not files:
+            errtype = f"No numerated file"
+            self.report({'ERROR'}, f'{errtype} in {outfolder}')
+            return {'CANCELLED'}
+
+        name = outfolder.name
+        montage_scn_name = f'{bpy.path.clean_name(name)}_edit'
+
+        # create scene and switch to it
+        montage_scn = bpy.data.scenes.get(montage_scn_name)
+        
+
+        if not self.overwrite_scn and montage_scn: # Abort
+            self.report({'ERROR'}, f'Scene "{name}_edit" already exists, Abort')
+            return {'CANCELLED'}
+
+        if montage_scn: # Delete already existing scene
+            bpy.data.scenes.remove(montage_scn)
+
+        montage_scn = bpy.data.scenes.new(montage_scn_name)
+        set_video_export_settings(montage_scn)
+        montage_scn.render.fps = self.fps
+        bpy.context.window.scene = montage_scn
+
+        video_wk = bpy.data.workspaces.get('Video Editing')
+        if video_wk:
+            context.window.workspace = video_wk
+        else:
+            video_wk_path = Path(bpy.utils.resource_path('LOCAL'), 'scripts/startup/bl_app_templates_system/Video_Editing/startup.blend')
+            if video_wk_path.exists:
+                bpy.ops.workspace.append_activate(idname='Video Editing', filepath=str(video_wk_path))
+            else:
+                print('Video Editing workspace file not found. No workspace switch')
+
+        _vse = montage_scn.sequence_editor_create()
+
+        chan = fn.get_next_available_channel(scn=montage_scn, start_from=5)
+        strip_name = outfolder.name
+        fn.add_frames_to_scene(montage_scn, fp=fp, strip_name=strip_name, channel=chan, start_frame=1) # pass outpath to give an absolute path
+
+        # check resolution of first image
+        res = get_resolution(files[0].path)
+        if res:
+            montage_scn.render.resolution_x = res[0]
+            montage_scn.render.resolution_y = res[1]
+        montage_scn.render.resolution_percentage = 100
+        montage_scn.frame_start = 1
+        montage_scn.frame_end = len(files) - 1
+
+        return {'FINISHED'}
+
+
+
 classes = (
 MKVIDEO_OT_gen_montage_scene,
+MKVIDEO_OT_gen_montage_from_folder,
 )
 
 def register():

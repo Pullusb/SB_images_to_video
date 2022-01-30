@@ -1,5 +1,10 @@
 # Changelog
 
+1.9.0
+
+- feat: VSE from folder. Create a sequencer scene directly from a chosen sequence directory
+  - Resolution will be set automatically from first image
+  - scene is name after the folder's name (with suffix "_edit")
 
 1.8.0
 

@@ -1,8 +1,8 @@
 # SB imgs2video
 
-Add buttons in Blender UI to create a video from just rendered images sequence in one click
+Add buttons in Blender UI to create a video from rendered images sequence in one click
 
-[DEMO Youtube](https://youtu.be/R_W3Uh3KVGM)  
+[DEMO Youtube](https://youtu.be/R_W3Uh3KVGM) (showcase an old version of the addon)
   
 
 **[Download latest](https://github.com/Pullusb/SB_imgs2video/archive/refs/heads/master.zip)**

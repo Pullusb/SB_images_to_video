@@ -21,7 +21,7 @@ bl_info = {
     "name": "imgs2video",
     "description": "Generate a video from image sequences",
     "author": "Samuel Bernou ",
-    "version": (1, 8, 0),
+    "version": (1, 9, 0),
     "blender": (2, 91, 0),
     "location": "Properties > Render > Output",
     "warning": "",

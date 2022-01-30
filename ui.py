@@ -26,8 +26,9 @@ def mk_video_panel(self, context):
     row.prop(settings, 'rendertrigger')
     row.prop(settings, 'open')
 
-    row = col.row(align=False)
-    row.operator("mkvideo.gen_montage_scene", text = "Make Montage Scene", icon = 'SEQUENCE')
+    split = col.split(align=True, factor=0.60)
+    split.operator("mkvideo.gen_montage_scene", text = "Make Montage Scene", icon = 'SEQUENCE')
+    split.operator("mkvideo.gen_montage_from_folder", text = "VSE From Folder", icon = 'FOLDER_REDIRECT')
 
 
 def register():
