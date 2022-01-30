@@ -81,9 +81,11 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
         outpath = Path(outpath)
         if fp.endswith(('\\', '/')):
             outfolder = outpath
+            video_name = outpath.name
         else:
             outfolder = outpath.parent
             name = outpath.name
+            video_name = outpath.name.rstrip(('.#_-'))
         
         if not outfolder.exists():
             self.report({'ERROR'}, f'Destination not exists {outfolder}')
@@ -164,7 +166,14 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
         chan = fn.get_next_available_channel(scn=montage_scn, start_from=5)
         strip_name = outfolder.name if not name else name.rstrip('_')
         fn.add_frames_to_scene(montage_scn, fp=fp, strip_name=strip_name, channel=chan, start_frame=start) # pass outpath to give an absolute path
-        
+
+
+        ## prefill output
+        check = [i.name for i in os.scandir(outpath.parent) if i.name.startswith(video_name) and i.is_file()]
+        if check: # versionning of the file if already exists
+            video_name = video_name + "_" + str(len(check) + 1).zfill(2)
+        montage_scn.render.filepath = str(outpath.parent / video_name)
+
         return {'FINISHED'}
 
 
@@ -255,6 +264,13 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
         montage_scn.render.resolution_percentage = 100
         montage_scn.frame_start = 1
         montage_scn.frame_end = len(files) - 1
+
+        ## prefill output
+        video_name = outfolder.name # directly use end folder as video name
+        check = [i.name for i in os.scandir(outfolder.parent) if i.name.startswith(video_name) and i.is_file()]
+        if check: # versionning of the file if already exists
+            video_name = video_name + "_" + str(len(check) + 1).zfill(2)
+        montage_scn.render.filepath = str(outfolder.parent / video_name)
 
         return {'FINISHED'}
 

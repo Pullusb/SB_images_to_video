@@ -32,7 +32,8 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
                 self.report({'ERROR'}, "Wrong path to ffmpeg in the preference of addon")
                 return {'CANCELLED'}        
         
-        elif fn.detect_OS() == 'windows' and ffbin.exists:
+        elif fn.detect_OS() == 'windows' and ffbin.exists():
+            print('-- using ffmpeg found in addon folder')
             binary = str(ffbin)
         
         else:
@@ -45,6 +46,8 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
                         ])
                 return {'CANCELLED'}
             binary = "ffmpeg"
+
+        print('binary: ', binary)
         
         ## Check image in output path
         if os.path.exists(head):            
@@ -112,11 +115,11 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         check = [i for i in os.listdir(outloc) if i.startswith(video_name) and os.path.isfile(os.path.join(outloc,i))]
         
         if check: #versionning of the file if already exists
-            video_name = video_name + "_" + str(len(check) + 1)
+            video_name = video_name + "_" + str(len(check) + 1).zfill(2)
 
         sound = False
         # Sound check
-        if fn.sound_in_scene():
+        if settings.sound and fn.sound_in_scene():
             # Mix down audio
             print('sound detected in scene')
             audio_path = f'{outloc}scn_audio.wav'
@@ -143,7 +146,7 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         dest_path = [outloc + video_name + '.mp4']
         
         sound_cmd = []
-        if sound:
+        if sound: # and settings.sound
             sound_cmd = ['-i', audio_path, '-map', '0', '-map', '1', '-shortest'] # <- shortest ?
 
         cmd = init + src_path + sound_cmd + tune + dest_path
@@ -151,7 +154,7 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         self.report({'INFO'}, "Generating video...")
         # print ("_"*10)
         
-        if sound:
+        if sound: # and settings.sound
             ## add delete temporary sound command (depending on filesystem)
             my_os = fn.detect_OS()
             if my_os == 'windows':
@@ -164,10 +167,10 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
 
         print('-- ffmpeg command --')
         print(' '.join(cmd))
-        if sound:
-            subprocess.Popen(cmd, shell=True, stderr=subprocess.STDOUT)
-        else:
-            subprocess.Popen(cmd, shell=False, stderr=subprocess.STDOUT) # shell = True gave problem in older version...
+        
+
+        ## shell at True had some problem in the past (needed to chain commands)
+        subprocess.Popen(cmd, shell=True, stderr=subprocess.STDOUT)
 
         return {'FINISHED'}
 

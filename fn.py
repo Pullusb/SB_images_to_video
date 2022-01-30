@@ -96,7 +96,7 @@ def get_next_available_channel(scn=None, start_from=1):
         if not i in used_channel:
             return i
 
-def get_files(outpath):
+def get_files(outpath, name_filter=False):
     '''return files as list of scandir object'''
 
     outpath = Path(outpath)
@@ -120,7 +120,7 @@ def get_files(outpath):
     files = [f for f in files if f.is_file() and redigit.search(f.name)] # filter only filename with sequence number
     files.sort(key=lambda x: x.name)
 
-    if name:
+    if name and name_filter:
         files = [f for f in files if f.name.startswith(name)]
     # else:
     #     files = [f for f in files if os.path.splitext(f.name)[0].isdigit()] # stem should be only digit

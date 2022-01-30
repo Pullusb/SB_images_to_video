@@ -16,21 +16,25 @@ class MKVIDEO_PGT_settings(bpy.types.PropertyGroup):
             ('NORMAL', 'Normal', 'good quality and average weight and encoding time'),
             ('FAST', 'Fast', 'fast encoding and light weight against quality (add "_L" suffix)')
             ),
+        options= {'HIDDEN'},
     )
 
     rendertrigger : BoolProperty(
-        name="Auto Launch", default=False,
+        name="Encode At Render End", default=False,
         description = "Automatic trigger after render's end\n",
+        options= {'HIDDEN'},
         )
 
     open : BoolProperty(
-        name="Open At Finish", default=False,
-        description = "Open video with player when creation over\n",
+        name="Play Video After Encode", default=True,
+        description = "Open video with default system player when encoding is over\n",
+        options= {'HIDDEN'},
         )
     
     sound : BoolProperty(
         name="Sound", default=True,
-        description = "Mix Sound ",
+        description = "Mix sound of VSE/Scene into generated video",
+        options= {'HIDDEN'},
         )
 
 def register():

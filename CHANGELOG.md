@@ -1,5 +1,15 @@
 # Changelog
 
+2.0.0
+
+- ui: Improved readability
+  - Placed in a subpanel of output
+  - Separate vidually ffmpeg encode and sequencer creation
+  - Expose sound output selection (seem)
+- fix: Error preventing use of ffmpeg in Path
+- added: prefill output for generated sequencer scene
+- changed: video version increment on re-encode with a padding of two
+
 1.9.0
 
 - feat: VSE from folder. Create a sequencer scene directly from a chosen sequence directory
