@@ -1,7 +1,6 @@
 '''
 Created by Samuel Bernou
 2015
-samuel.bernou@outlook.com
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,12 +18,11 @@ samuel.bernou@outlook.com
 
 bl_info = {
     "name": "Images to Video",
-    "description": "Generate a video from image sequences",
-    "author": "Samuel Bernou ",
+    "description": "Generate a video from image sequence",
+    "author": "Samuel Bernou",
     "version": (2, 0, 0),
     "blender": (2, 91, 0),
     "location": "Properties > Render > Output",
-    "warning": "",
     "doc_url": "https://github.com/Pullusb/SB_images_to_video/blob/master/README.md",
     "tracker_url": "https://github.com/Pullusb/SB_images_to_video/issues",
     "category": "System" }
