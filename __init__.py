@@ -18,15 +18,15 @@ samuel.bernou@outlook.com
 '''
 
 bl_info = {
-    "name": "imgs2video",
+    "name": "Images to Video",
     "description": "Generate a video from image sequences",
     "author": "Samuel Bernou ",
     "version": (2, 0, 0),
     "blender": (2, 91, 0),
     "location": "Properties > Render > Output",
     "warning": "",
-    "doc_url": "https://github.com/Pullusb/SB_imgs2video/blob/master/README.md",
-    "tracker_url": "https://github.com/Pullusb/SB_imgs2video/issues",
+    "doc_url": "https://github.com/Pullusb/SB_images_to_video/blob/master/README.md",
+    "tracker_url": "https://github.com/Pullusb/SB_images_to_video/issues",
     "category": "System" }
 
 import bpy
