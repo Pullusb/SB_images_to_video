@@ -1,26 +1,10 @@
-'''
-Created by Samuel Bernou
-2015
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 bl_info = {
     "name": "Images to Video",
     "description": "Generate a video from image sequence",
     "author": "Samuel Bernou",
-    "version": (2, 0, 0),
+    "version": (2, 1, 0),
     "blender": (2, 91, 0),
     "location": "Properties > Render > Output",
     "doc_url": "https://github.com/Pullusb/SB_images_to_video/blob/master/README.md",
@@ -34,6 +18,7 @@ from . import properties
 from . import prefs
 from . import OP_mk_vse_montage
 from . import OP_mk_ffmpeg_video
+from . import OP_mk_ffmpeg_gif
 from . import OP_get_ffmpeg
 from . import ui
 
@@ -48,6 +33,7 @@ def register():
     prefs.register()
     OP_mk_vse_montage.register()
     OP_mk_ffmpeg_video.register()
+    OP_mk_ffmpeg_gif.register()
     OP_get_ffmpeg.register()
     ui.register()
 
@@ -56,6 +42,7 @@ def register():
 def unregister():
     ui.unregister()
     OP_get_ffmpeg.unregister()
+    OP_mk_ffmpeg_gif.unregister()
     OP_mk_ffmpeg_video.unregister()
     OP_mk_vse_montage.unregister()
     prefs.unregister()

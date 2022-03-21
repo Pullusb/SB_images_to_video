@@ -14,54 +14,29 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         scn = bpy.context.scene
         prefs = fn.get_prefs()
 
-        # get the path in user preferences field
-        path_to_ffmpeg = prefs.path_to_ffmpeg
-        
         settings = scn.mkvideo_prop
-
-        outfolder = bpy.path.abspath(scn.render.filepath) # get absolute path of output location
-        head, tail = os.path.split(outfolder) # split output path
-
-        ## get ffmpeg bin
-        ffbin = Path(__file__).parent / 'ffmpeg.exe'
-
-        if path_to_ffmpeg:
-            if os.path.exists(path_to_ffmpeg) and os.path.isfile(path_to_ffmpeg):
-                binary = path_to_ffmpeg
-            else:
-                self.report({'ERROR'}, "Wrong path to ffmpeg in the preference of addon")
-                return {'CANCELLED'}        
         
-        elif fn.detect_OS() == 'windows' and ffbin.exists():
-            print('-- using ffmpeg found in addon folder')
-            binary = str(ffbin)
-        
-        else:
-            import shutil
-            if not shutil.which('ffmpeg'):
-                fn.show_message_box(_title = "No ffmpeg found", _icon = 'INFO',
-                    _message =[
-                            "ffmpeg is needed for this action, see addon prefs",
-                            ["mkvideo.open_addon_prefs", "Click here to open addon prefs", "PREFERENCES"] # TOOL_SETTINGS
-                        ])
-                return {'CANCELLED'}
-            binary = "ffmpeg"
+        binary = fn.ffmpeg_binary(self)
+        if not binary:
+            return {'CANCELLED'}
 
         print('binary: ', binary)
-        
+
+        outfolder = bpy.path.abspath(scn.render.filepath) # get absolute path of output location
+        if not outfolder:
+            self.report({'ERROR'}, 'No output path specified in scene')
+            return {'CANCELLED'}
+
+        head, tail = os.path.split(outfolder) # split output path
+
         ## Check image in output path
-        if os.path.exists(head):            
-            imgFiles = [i for i in os.listdir(head) if fn.is_image(head, i)]
-            if imgFiles:
-                pass
-            else:
-                self.report({'ERROR'}, f'no images in: {head}')
-                return {'CANCELLED'}
-        else:
-            self.report({'ERROR'}, f'path not exist: {head}')
+        if not fn.contain_images(self, head):
             return {'CANCELLED'}
        
         video_name = "" # override video name output (not used in final addon)
+        if not video_name:
+            video_name = fn.get_end_stem(context)
+
         encode = 'h264' # leave  emlpty quote ("") to encode in mpeg4 codec
         
         quality = 10000
@@ -84,17 +59,6 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
                 print("no quality settings active! set to preset medium / quality10")
 
         quality = str(quality)
-
-        if not video_name:
-            if tail: #name was specified (name + numbers)
-                print ("tail found")
-                video_name = tail
-                ## if tail ends with "_ - .", then clear it
-                video_name = video_name.rstrip(('.#_-'))
-            else: #ended on a directory (only numbers)
-                print ("no tail")
-                video_name = os.path.basename(head)
-                print("video_name", video_name)#Dbg
         
         #get framerate
         framerate = str(scn.render.fps)

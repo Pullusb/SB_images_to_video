@@ -159,3 +159,64 @@ def sound_in_scene():
     if any(o.type == 'SPEAKER' and not o.hide_viewport and o.data and o.data.sound and not o.data.muted for o in scn.objects):
         return True
     return False
+
+
+### -- using self
+## Check ffmpeg binary to use
+
+def ffmpeg_binary(self):
+    # get the path in user preferences field
+    prefs = get_prefs()
+    path_to_ffmpeg = prefs.path_to_ffmpeg
+
+    ## get ffmpeg bin
+    ffbin = Path(__file__).parent / 'ffmpeg.exe'
+
+    if path_to_ffmpeg:
+        if os.path.exists(path_to_ffmpeg) and os.path.isfile(path_to_ffmpeg):
+            return path_to_ffmpeg
+        else:
+            self.report({'ERROR'}, "Wrong path to ffmpeg in the preference of addon")
+            return # {'CANCELLED'}        
+    
+    elif detect_OS() == 'windows' and ffbin.exists():
+        print('-- using ffmpeg found in addon folder')
+        return str(ffbin)
+    
+    else:
+        import shutil
+        if not shutil.which('ffmpeg'):
+            show_message_box(_title = "No ffmpeg found", _icon = 'INFO',
+                _message =[
+                        "ffmpeg is needed for this action, see addon prefs",
+                        ["mkvideo.open_addon_prefs", "Click here to open addon prefs", "PREFERENCES"] # TOOL_SETTINGS
+                    ])
+            return # {'CANCELLED'}
+        return "ffmpeg"
+    
+
+def contain_images(self, fp):
+
+    if not os.path.exists(fp):
+        self.report({'ERROR'}, f'path not exist: {fp}')
+        return False
+    
+    imgFiles = [i for i in os.listdir(fp) if is_image(fp, i)]
+    if imgFiles:
+        pass
+    else:
+        self.report({'ERROR'}, f'no images in: {fp}')
+        return False
+
+    return True
+
+def get_end_stem(context):
+    outfolder = bpy.path.abspath(context.scene.render.filepath) # get absolute path of output location
+    head, tail = os.path.split(outfolder) # split output path
+    if tail: #name was specified (name + numbers)
+        print ("tail found")
+        ## if tail ends with "_ - .", then clear it
+        return tail.rstrip(('.#_-'))
+    else: #ended on a directory (only numbers)
+        print ("no tail")
+        return os.path.basename(head)

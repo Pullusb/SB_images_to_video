@@ -16,7 +16,9 @@ def mk_video_panel(self, context):
 
     row = col.row(align=True)
     row.prop(settings, 'quality')
-    row.operator("render.make_video", text = "Make video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
+    row.operator("render.make_video", text = "Make Video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
+    
+    col.operator("render.make_gif", text = "Make Gif", icon = 'RENDER_ANIMATION')
 
 
     col = layout.column()

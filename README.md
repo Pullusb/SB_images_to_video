@@ -1,4 +1,4 @@
-# SB imgs2video
+# SB images to video
 
 Add buttons in Blender UI to create a video from rendered images sequence in one click
 
@@ -24,7 +24,7 @@ If you want to support me you can go on:
 
 Add buttons in the Properties > Output pannel
 
-When your image sequence render is finished, just choose the quality and hit *"make video"*.  
+When your image sequence render is finished, just choose the quality and hit *"Make Video"*.  
 
 `auto Launch` create the video automatically after the render ends
 
@@ -36,6 +36,8 @@ Choose between 3 preset:
 - _normal_ - good quality, average weight and encoding time
 - _Final_ - slower - super quality and optimize weight (add "_F" suffix)
 
+
+You can also hit *"Make Gif"* to create an optimized gif from your sequence with various settings (pop up a pre-launch window)
 
 Old screenshot : 
 ![Output pannel with imgs2video Addon enabled](http://www.samuelbernou.fr/imgs/git/Addon_imgs2video_screenshot_demo)
