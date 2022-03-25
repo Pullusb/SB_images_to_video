@@ -1,8 +1,12 @@
 # Changelog
 
+2.2.0
+
+- added: new `make gif from path`. Can generate gif from chosen _folder / sequence / video_ chosen from filebrowser
+
 2.1.0
 
-- added: new `make gif` feature. generate optimized gif (pop-up panel with gif settings including a multi-export)
+- added: new `make gif` feature. Generate optimized gif (pop-up panel with gif settings including a multi-export)
 
 2.0.0
 

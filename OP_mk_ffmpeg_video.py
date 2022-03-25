@@ -7,7 +7,7 @@ from . import fn
 class MKVIDEO_OT_makeVideo(bpy.types.Operator):
     """make video from imgs sequence with ffmpeg"""
     bl_idname = "render.make_video"
-    bl_label = "imgs to video"
+    bl_label = "Imgs To Video"
     bl_options = {'REGISTER'}
     
     def execute(self, context):

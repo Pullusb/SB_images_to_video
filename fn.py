@@ -71,6 +71,23 @@ def is_image(head, i):
             return True
     return False
 
+def is_video(fp):
+    fp = Path(fp)
+    if not fp.is_file():
+        return False
+    videoTypeList = ["mp4", "mov", "mkv", "webm", "avi",
+    "wmv", "avchd", "flv", "f4v", "swf",
+    "m4a", "3gp", "3g2", "mj2"]
+
+    return bool([x for x in videoTypeList if fp.name.lower().endswith('.' + x)])
+
+def righmost_number(name) -> str:
+    '''Return righ mmost number is past string, None if no number found'''
+    res = re.search(r'(\d+)(?!.*\d)', str(name))
+    if res:
+        return res.group(1)
+
+
 def tail_padding(name):
     '''
     return name with a ffmpeg padding marker of 4 digit
@@ -82,6 +99,10 @@ def tail_padding(name):
     r = re.search(r'\#{1,10}', name)
     ct = len(r.group())
     return re.sub(r'\#{1,10}', f'%{str(ct).zfill(2)}d', name)
+
+def get_ffmpeg_padding_marker(name):
+    '''return name with righmost number replaced by ffmpeg padding marker'''
+    return re.sub(r'(\d+)(?!.*\d)', lambda x : f"%{str(len(x.group(1))).zfill(2)}d", str(name))
 
 
 ### VSE creation functions

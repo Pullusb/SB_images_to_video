@@ -18,10 +18,12 @@ def mk_video_panel(self, context):
     row.prop(settings, 'quality')
     row.operator("render.make_video", text = "Make Video", icon = 'RENDER_ANIMATION') #or icon tiny camera : 'CAMERA_DATA'
     
-    col.operator("render.make_gif", text = "Make Gif", icon = 'RENDER_ANIMATION')
-
-
     col = layout.column()
+    col.label(text='Generate Gif:')
+    split = col.split(align=True, factor=0.60)
+    split.operator("render.make_gif", text = "Make Gif", icon = 'RENDER_ANIMATION')
+    split.operator("render.make_gif_from_folder", text = "Gif From Path", icon = 'FOLDER_REDIRECT')
+
     col.label(text='Generate Sequencer:')
 
     split = col.split(align=True, factor=0.60)

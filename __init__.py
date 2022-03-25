@@ -4,7 +4,7 @@ bl_info = {
     "name": "Images to Video",
     "description": "Generate a video from image sequence",
     "author": "Samuel Bernou",
-    "version": (2, 1, 0),
+    "version": (2, 2, 0),
     "blender": (2, 91, 0),
     "location": "Properties > Render > Output",
     "doc_url": "https://github.com/Pullusb/SB_images_to_video/blob/master/README.md",
