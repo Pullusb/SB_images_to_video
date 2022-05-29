@@ -28,7 +28,7 @@ def mk_video_panel(self, context):
 
     split = col.split(align=True, factor=0.60)
     split.operator("mkvideo.gen_montage_scene", text = "Make Montage Scene", icon = 'SEQUENCE')
-    split.operator("mkvideo.gen_montage_from_folder", text = "VSE From Folder", icon = 'FOLDER_REDIRECT')
+    split.operator("mkvideo.gen_montage_from_folder", text = "VSE From File/Folder", icon = 'FOLDER_REDIRECT')
 
     # col.operator("mkvideo.gen_montage_scene", text = "Make Montage Scene", icon = 'SEQUENCE')
     # col.operator("mkvideo.gen_montage_from_folder", text = "VSE From Folder", icon = 'FOLDER_REDIRECT')

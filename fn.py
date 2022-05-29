@@ -165,12 +165,31 @@ def add_frames_to_scene(scn, fp, strip_name=None, channel=None, start_frame=None
     if not files:
         return
     seq = vse.sequences.new_image(
-        name=strip_name, filepath=files[0].path, channel=5, frame_start=start_frame, fit_method='ORIGINAL')
+        name=strip_name, filepath=files[0].path, channel=channel, frame_start=start_frame, fit_method='ORIGINAL')
     ## fit method in  ('FIT', 'FILL', 'STRETCH', 'ORIGINAL') default : 'ORIGINAL'
     for img in files[1:]:
        seq.elements.append(img.name)
     
     return seq
+
+def add_video_to_scene(scn, fp, strip_name=None, channel=None, start_frame=None):
+    '''Set video on scn from fp'''
+    vse = scn.sequence_editor
+    if start_frame is None:
+        start_frame = scn.frame_start
+
+    if not channel:
+        channel = get_next_available_channel(scn=scn, start_from=1)
+
+    outpath = os.path.abspath(bpy.path.abspath(fp))
+
+    if not strip_name:
+        strip_name = outpath.name
+    
+    strip = vse.sequences.new_movie(
+        name=strip_name, filepath=str(outpath), channel=channel, frame_start=start_frame, fit_method='ORIGINAL')
+    ## fit method in  ('FIT', 'FILL', 'STRETCH', 'ORIGINAL') default : 'ORIGINAL'
+    return strip
 
 def sound_in_scene():
     scn = bpy.context.scene

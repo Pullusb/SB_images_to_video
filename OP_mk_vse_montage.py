@@ -178,7 +178,7 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
 
 
 class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
-    """Create a montage VSE scene from a chosen image sequence"""
+    """Create a montage VSE scene from a chosen image sequence or a video file"""
     bl_idname = "mkvideo.gen_montage_from_folder"
     bl_label = "Generate Montage From Folder"
     bl_options = {'REGISTER'}
@@ -197,9 +197,13 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
     # Set FPS manually
     fps : bpy.props.IntProperty(name='Frame Rate', default=24, min=1, description='Set frame rate of new scene')
 
+    # new_scene : bpy.props.BoolProperty(name='Make New Scene', default=True, 
+    #     description='Import and modify in the current scene instead of creating a new one')
+
     overwrite_scn : bpy.props.BoolProperty(name='Overwrite Existing Scene', default=False, 
         description='If scene already exists, overwrite instead of abort (scene name: "folder name" + "_edit")')
     
+
     # directory = bpy.props.StringProperty(subtype='DIR_PATH')
     
     filepath : bpy.props.StringProperty(
@@ -214,22 +218,26 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
         outpath = Path(fp)
         outfolder = outpath if outpath.is_dir() else outpath.parent
 
-        files = fn.get_files(outpath) # list of scandir entry
-        
-        if not files:
-            errtype = f"No numerated file"
-            self.report({'ERROR'}, f'{errtype} in {outfolder}')
-            return {'CANCELLED'}
+        is_video = fn.is_video(outpath)
+        if is_video:
+            name = outpath.stem
+        else:
+            files = fn.get_files(outpath) # list of scandir entry
+            if not files:
+                errtype = f"No numerated file"
+                self.report({'ERROR'}, f'{errtype} in {outfolder}')
+                return {'CANCELLED'}
+            name = outfolder.name
 
-        name = outfolder.name
-        montage_scn_name = f'{bpy.path.clean_name(name)}_edit'
+        cl_name = bpy.path.clean_name(name)
+        montage_scn_name = f'{cl_name}_edit'
 
         # create scene and switch to it
         montage_scn = bpy.data.scenes.get(montage_scn_name)
         
 
         if not self.overwrite_scn and montage_scn: # Abort
-            self.report({'ERROR'}, f'Scene "{name}_edit" already exists, Abort')
+            self.report({'ERROR'}, f'Scene "{montage_scn}" already exists, Abort')
             return {'CANCELLED'}
 
         if montage_scn: # Delete already existing scene
@@ -237,8 +245,11 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
 
         montage_scn = bpy.data.scenes.new(montage_scn_name)
         set_video_export_settings(montage_scn)
-        montage_scn.render.fps = self.fps
+        
         bpy.context.window.scene = montage_scn
+        
+        if not is_video:
+            montage_scn.render.fps = self.fps
 
         video_wk = bpy.data.workspaces.get('Video Editing')
         if video_wk:
@@ -253,20 +264,28 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
         _vse = montage_scn.sequence_editor_create()
 
         chan = fn.get_next_available_channel(scn=montage_scn, start_from=5)
-        strip_name = outfolder.name
-        fn.add_frames_to_scene(montage_scn, fp=fp, strip_name=strip_name, channel=chan, start_frame=1) # pass outpath to give an absolute path
 
-        # check resolution of first image
-        res = get_resolution(files[0].path)
-        if res:
-            montage_scn.render.resolution_x = res[0]
-            montage_scn.render.resolution_y = res[1]
-        montage_scn.render.resolution_percentage = 100
-        montage_scn.frame_start = 1
-        montage_scn.frame_end = len(files) - 1
+        if is_video:
+            vstrip = fn.add_video_to_scene(montage_scn, fp=fp, strip_name=cl_name, channel=chan+1, start_frame=1) # chan+1 to load sound below
+            # set scene fps to match video
+            montage_scn.render.fps = int(vstrip.elements[0].orig_fps)
+            montage_scn.render.resolution_x = vstrip.elements[0].orig_width
+            montage_scn.render.resolution_y = vstrip.elements[0].orig_height
+            vstrip.blend_type = 'ALPHA_OVER'
+        else:
+            fn.add_frames_to_scene(montage_scn, fp=fp, strip_name=cl_name, channel=chan, start_frame=1)
+
+            # check resolution of first image
+            res = get_resolution(files[0].path)
+            if res:
+                montage_scn.render.resolution_x = res[0]
+                montage_scn.render.resolution_y = res[1]
+            montage_scn.render.resolution_percentage = 100
+            montage_scn.frame_start = 1
+            montage_scn.frame_end = len(files) - 1
 
         ## prefill output
-        video_name = outfolder.name # directly use end folder as video name
+        video_name = cl_name # directly use end folder as video name
         check = [i.name for i in os.scandir(outfolder.parent) if i.name.startswith(video_name) and i.is_file()]
         if check: # versionning of the file if already exists
             video_name = video_name + "_" + str(len(check) + 1).zfill(2)

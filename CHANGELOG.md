@@ -1,5 +1,9 @@
 # Changelog
 
+2.3.0
+
+- added: `from folder` option allow to load a video instead of image sequence only
+
 2.2.0
 
 - added: new `make gif from path`. Can generate gif from chosen _folder / sequence / video_ chosen from filebrowser
