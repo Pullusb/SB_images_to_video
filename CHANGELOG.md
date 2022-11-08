@@ -1,5 +1,9 @@
 # Changelog
 
+2.3.1
+
+- fix: new arg restriction sound strip creation
+
 2.3.0
 
 - added: `from folder` option allow to load a video instead of image sequence only

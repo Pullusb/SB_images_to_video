@@ -154,7 +154,7 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
                     continue
 
                 ## TODO check if there is a way to directly link a strip (would be awesome)
-                ns = vse.sequences.new_sound(name=s.name, filepath=s.sound.filepath, channel=s.channel, frame_start=s.frame_start)
+                ns = vse.sequences.new_sound(name=s.name, filepath=s.sound.filepath, channel=s.channel, frame_start=int(s.frame_start))
                 ns.sound = s.sound # reget the same sound source
                 
                 for attr in ('frame_final_start','frame_final_end','frame_still_start','frame_still_end','frame_offset_start','frame_offset_end','pitch','pan','show_waveform','speed_factor','volume','mute'):
