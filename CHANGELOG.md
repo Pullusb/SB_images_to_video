@@ -1,5 +1,9 @@
 # Changelog
 
+2.3.2
+
+- fix: sound strip creation in montage scene
+
 2.3.1
 
 - fix: new arg restriction sound strip creation

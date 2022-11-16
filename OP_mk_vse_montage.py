@@ -159,7 +159,7 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
                 
                 for attr in ('frame_final_start','frame_final_end','frame_still_start','frame_still_end','frame_offset_start','frame_offset_end','pitch','pan','show_waveform','speed_factor','volume','mute'):
                     if hasattr(s, attr):
-                        setattr(s, attr, getattr(ns, attr))
+                        setattr(ns, attr, getattr(s, attr))
                 ## TODO also no effect strip transfer ...
        
         # if not specified, start will be montage_scn start
