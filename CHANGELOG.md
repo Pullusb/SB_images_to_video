@@ -1,5 +1,9 @@
 # Changelog
 
+2.3.3
+
+- changed: Better UI for fps choice in gif frame render popup
+
 2.3.2
 
 - fix: sound strip creation in montage scene
@@ -24,7 +28,7 @@
 
 - ui: Improved readability
   - Placed in a subpanel of output
-  - Separate vidually ffmpeg encode and sequencer creation
+  - Separate visually ffmpeg encode and sequencer creation
   - Expose sound output selection (seem)
 - fix: Error preventing use of ffmpeg in Path
 - added: prefill output for generated sequencer scene

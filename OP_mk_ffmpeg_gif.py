@@ -13,6 +13,10 @@ class MKVIDEO_OT_make_gif(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     # frame rate
+
+    use_scene_fps : bpy.props.BoolProperty(name='Use Scene FPS', default=True,
+    description='Define gif framerate based on scene framerate')
+
     fps : bpy.props.IntProperty(name='Frame Rate',default=15, min=1, max=500,
     description='Frame rate of outputed gif')
 
@@ -44,9 +48,7 @@ class MKVIDEO_OT_make_gif(bpy.types.Operator):
 
     def invoke(self, context, event):
         scn = context.scene
-        if self.fps == 15: # use scene fps instead of default
-            self.fps = scn.render.fps
-        
+
         self.settings = scn.mkvideo_prop
         self.prefs = fn.get_prefs()
 
@@ -69,7 +71,12 @@ class MKVIDEO_OT_make_gif(bpy.types.Operator):
         layout = self.layout
         # layout.use_property_split = True
         col = layout.column()
-        col.prop(self, 'fps')
+        col.prop(self, 'use_scene_fps')
+        if self.use_scene_fps:
+            col.label(text=f'Frame Rate: {context.scene.render.fps}')
+        else:
+            col.prop(self, 'fps')
+
         col.prop(self, 'width')
         # if self.width == 0:
         col.label(text='Width 0 = No rescale')
@@ -85,6 +92,8 @@ class MKVIDEO_OT_make_gif(bpy.types.Operator):
 
     def execute(self, context):
         scn = bpy.context.scene
+        self.fps = scn.render.fps if self.use_scene_fps else self.fps
+            
         outfolder = bpy.path.abspath(scn.render.filepath) # get absolute path of output location
         head, tail = os.path.split(outfolder) # split output path
 
