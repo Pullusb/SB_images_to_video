@@ -22,13 +22,13 @@ def mk_video_panel(self, context):
     col.label(text='Generate Gif:')
     split = col.split(align=True, factor=0.60)
     split.operator("render.make_gif", text = "Make Gif", icon = 'RENDER_ANIMATION')
-    split.operator("render.make_gif_from_folder", text = "Gif From Path", icon = 'FOLDER_REDIRECT')
+    split.operator("render.make_gif_from_folder", text = "Gif From Files/Video", icon = 'FOLDER_REDIRECT')
 
     col.label(text='Generate Sequencer:')
 
     split = col.split(align=True, factor=0.60)
     split.operator("mkvideo.gen_montage_scene", text = "Make Montage Scene", icon = 'SEQUENCE')
-    split.operator("mkvideo.gen_montage_from_folder", text = "VSE From File/Folder", icon = 'FOLDER_REDIRECT')
+    split.operator("mkvideo.gen_montage_from_folder", text = "VSE From Files/Video", icon = 'FOLDER_REDIRECT')
 
     # col.operator("mkvideo.gen_montage_scene", text = "Make Montage Scene", icon = 'SEQUENCE')
     # col.operator("mkvideo.gen_montage_from_folder", text = "VSE From Folder", icon = 'FOLDER_REDIRECT')

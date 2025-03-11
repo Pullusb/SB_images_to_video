@@ -1,9 +1,18 @@
 # Changelog
 
+2.4.0
+
+- added: new option to add text strip above loaded strip in `Make sequencer from images/video`
+  - strip is placed at top left corner
+  - placeholder text : `output name - resolution - fps` (to quickly see if there is an issue)
+- changed: more logic name for buttons:
+  - `Gif From Path` -> `Gif From Files/Video`
+  - `VSE From File/Folder` -> `VSE From Files/Video`
+
 2.3.4
 
-- fixed: `Make VSE from image sequence files` now correctly place end frame (was missing last frame on the strip)
-- fixed: making vse from video file now set frame_end 
+- fixed: making sequencer from image-sequence files now correctly place end frame (was missing last frame on the strip)
+- fixed: making sequencer from video file now set frame_end (stay on default previously)
 - changed: Default parameters in preference
   - format: mkv -> mp4
   - quality: medium -> high

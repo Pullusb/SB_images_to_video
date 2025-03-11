@@ -204,6 +204,10 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
         description='If scene already exists, overwrite instead of abort (scene name: "folder name" + "_edit")')
     
 
+    ## Convenience stuff
+    add_text_strip : bpy.props.BoolProperty(name='Add Text Strip', default=False,
+        description='Add a text strip with placeholder text on top')
+
     # directory = bpy.props.StringProperty(subtype='DIR_PATH')
     
     filepath : bpy.props.StringProperty(
@@ -261,7 +265,7 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
             else:
                 print('Video Editing workspace file not found. No workspace switch')
 
-        _vse = montage_scn.sequence_editor_create()
+        vse = montage_scn.sequence_editor_create()
 
         chan = fn.get_next_available_channel(scn=montage_scn, start_from=5)
 
@@ -291,6 +295,28 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
         if check: # versionning of the file if already exists
             video_name = video_name + "_" + str(len(check) + 1).zfill(2)
         montage_scn.render.filepath = str(outfolder.parent / video_name)
+
+        ## Extra quality of life
+        if self.add_text_strip:
+            text_chan = fn.get_next_available_channel(scn=montage_scn, start_from=5)
+            text_strip = vse.sequences.new_effect(
+                    'Text', type='TEXT', channel=text_chan, 
+                    frame_start=montage_scn.frame_start, frame_end=montage_scn.frame_end + 1)
+
+            ## Add place holder text
+            # reduced size
+            text_strip.font_size = 20 # default text is 60, default burnt-in is 12
+            # Upper left corner
+            text_strip.location = (0.01, 0.99)
+            text_strip.align_x = 'LEFT'
+            text_strip.align_y = 'TOP'
+
+            ## Box decoration for better readability (outline instead ?)
+            text_strip.use_box = True
+            text_strip.box_margin = 0.004
+            
+            ## Placeholder text is info on output name, resolution and fps
+            text_strip.text = f'{cl_name} - {montage_scn.render.resolution_x}x{montage_scn.render.resolution_y} - {montage_scn.render.fps} fps'
 
         return {'FINISHED'}
 
