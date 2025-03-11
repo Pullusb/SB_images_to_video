@@ -52,7 +52,7 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
 
     format : EnumProperty(
         name='Container',
-        default='MKV',
+        default='MPEG4',
         description='Output file container',
         items=(
             ('MPEG1', 'MPEG-1', ''),
@@ -90,7 +90,7 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
 
     constant_rate_factor : bpy.props.EnumProperty(
         name='Output Quality',
-        default='MEDIUM',
+        default='HIGH',
         description='Constant Rate Factor (CRF); tradeoff between video quality and file size',
         items=(
             ('NONE', 'Constant Bitrate', 'Configure constant bit rate, rather than constant output quality'),
@@ -167,7 +167,7 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
     ## audio
     audio_codec : EnumProperty(
         name='Audio Codec',
-        default='AAC',
+        default='NONE', # AAC
         description='FFmpeg audio codec to use',
         items=(
             ('NONE', 'No Audio', 'Disables audio output, for video-only renders'),

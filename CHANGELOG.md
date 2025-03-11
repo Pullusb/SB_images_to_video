@@ -1,5 +1,15 @@
 # Changelog
 
+2.3.4
+
+- fixed: `Make VSE from image sequence files` now correctly place end frame (was missing last frame on the strip)
+- fixed: making vse from video file now set frame_end 
+- changed: Default parameters in preference
+  - format: mkv -> mp4
+  - quality: medium -> high
+  - audio: aac -> none
+- changed: scene overwrite is set by default to `True` when loading new file(s)
+
 2.3.3
 
 - changed: Better UI for fps choice in gif frame render popup

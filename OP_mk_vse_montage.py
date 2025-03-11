@@ -200,7 +200,7 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
     # new_scene : bpy.props.BoolProperty(name='Make New Scene', default=True, 
     #     description='Import and modify in the current scene instead of creating a new one')
 
-    overwrite_scn : bpy.props.BoolProperty(name='Overwrite Existing Scene', default=False, 
+    overwrite_scn : bpy.props.BoolProperty(name='Overwrite Scene', default=True, 
         description='If scene already exists, overwrite instead of abort (scene name: "folder name" + "_edit")')
     
 
@@ -272,6 +272,7 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
             montage_scn.render.resolution_x = vstrip.elements[0].orig_width
             montage_scn.render.resolution_y = vstrip.elements[0].orig_height
             vstrip.blend_type = 'ALPHA_OVER'
+            montage_scn.frame_end = vstrip.frame_final_duration
         else:
             fn.add_frames_to_scene(montage_scn, fp=fp, strip_name=cl_name, channel=chan, start_frame=1)
 
@@ -282,7 +283,7 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
                 montage_scn.render.resolution_y = res[1]
             montage_scn.render.resolution_percentage = 100
             montage_scn.frame_start = 1
-            montage_scn.frame_end = len(files) - 1
+            montage_scn.frame_end = len(files) # - 1 (do not remove 1, playhead on strip's end shows empty frame, but it's actually showing the next frame)
 
         ## prefill output
         video_name = cl_name # directly use end folder as video name
