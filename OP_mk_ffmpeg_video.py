@@ -1,5 +1,6 @@
 import bpy
 import os
+import sys
 from pathlib import Path
 import subprocess
 from . import fn
@@ -132,9 +133,12 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         print('-- ffmpeg command --')
         print(' '.join(cmd))
         
+        shell_state = True
+        ## shell at True had some problem in the past (but needed to chain commands)
+        # if sys.platform.startswith('linux'):
+        #     shell_state = False
 
-        ## shell at True had some problem in the past (needed to chain commands)
-        subprocess.Popen(cmd, shell=True, stderr=subprocess.STDOUT)
+        subprocess.Popen(cmd, shell=shell_state, stderr=subprocess.STDOUT)
 
         return {'FINISHED'}
 

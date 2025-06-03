@@ -277,6 +277,7 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         
         # col.label(text="May not work if space are in path.")
         box.prop(self, "path_to_ffmpeg")
+        box.prop(self, "note_suffix")
         
         # ----- Scene settings for new scene creation
 

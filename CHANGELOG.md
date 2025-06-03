@@ -1,5 +1,9 @@
 # Changelog
 
+2.5.0
+
+- added: option in preferences to remove suffix from videos generated directly with ffmpeg
+
 2.4.0
 
 - added: new option to add text strip above loaded strip in `Make sequencer from images/video`
