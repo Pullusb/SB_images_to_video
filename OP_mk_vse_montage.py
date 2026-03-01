@@ -8,6 +8,16 @@ from . import fn
 ## TODO: update for Blender 5.0 API
 def set_video_export_settings(scn):
     prefs = fn.get_prefs()
+    ## untested method to directly get prop to replicate from prefs class
+    # _addon_props = {'path_to_ffmpeg', 'note_suffix'}
+    # pref_attrs = [k for k in type(prefs).__annotations__ if k not in _addon_props]
+    # for attr in pref_attrs:
+    #     if hasattr(scn.render.image_settings, attr):
+    #         setattr(scn.render.image_settings, attr, getattr(prefs, attr))
+    #     elif hasattr(scn.render.ffmpeg, attr):
+    #         setattr(scn.render.ffmpeg, attr, getattr(prefs, attr))
+
+    ## hardcoded setting list
     im_settings_attr = ["color_mode", "quality", "color_depth"]
     ff_attr = [
         "format",
@@ -197,6 +207,19 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
             video_name = video_name + "_" + str(len(check) + 1).zfill(2)
         montage_scn.render.filepath = str(outpath.parent / video_name)
 
+        # Switching sequencer scene does not work...
+        # bpy.context.workspace.sequencer_scene = montage_scn
+
+        ## Do not work as well
+        # for window in bpy.context.window_manager.windows:
+        #     window.workspace.sequencer_scene = montage_scn
+
+        ## Try using timer, do not work too...
+        # def _set_sequencer_scene(scn=montage_scn):
+        #     for window in bpy.context.window_manager.windows:
+        #         window.workspace.sequencer_scene = scn
+        #     return None
+        # bpy.app.timers.register(_set_sequencer_scene, first_interval=0.8)
         return {'FINISHED'}
 
 
