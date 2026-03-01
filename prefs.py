@@ -211,50 +211,112 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         description='Audio samplerate(samples/s)',)
     
 
-    def draw_vcodec(self, context, layout):
+    def draw_vcodec(self, context):
         """Video codec options."""
+        layout = self.layout
+        ## reusing native panel with pref properties
+        ffmpeg = self# context.scene.render.ffmpeg
 
-        layout = layout.column()
-        needs_codec = self.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG', 'MPEG4', 'WEBM'}
+        needs_codec = ffmpeg.format in {
+            'AVI',
+            'QUICKTIME',
+            'MKV',
+            'OGG',
+            'MPEG4',
+            'WEBM',
+        }
         if needs_codec:
-            layout.prop(self, "codec")
+            layout.prop(ffmpeg, "codec")
 
-        if needs_codec and self.codec == 'NONE':
+        if needs_codec and ffmpeg.codec == 'NONE':
             return
 
-        if self.codec == 'DNXHD':
-            layout.prop(self, "use_lossless_output")
+        image_settings = context.scene.render.image_settings
+
+        if image_settings.color_management == 'OVERRIDE':
+            display_settings = image_settings.display_settings
+            view_settings = image_settings.view_settings
+        else:
+            display_settings = context.scene.display_settings
+            view_settings = context.scene.view_settings
+
+        # HDR compatibility
+        if view_settings.is_hdr and (not needs_codec or ffmpeg.codec not in {'H265', 'AV1'}):
+            layout.label(text="HDR needs H.265 or AV1", icon='ERROR')
+
+        # Color depth. List of codecs needs to be in sync with
+        # `IMB_ffmpeg_valid_bit_depths` in source code.
+        use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1', 'PRORES', 'FFV1'}
+        if use_bpp:
+            layout.prop(image_settings, "color_depth", expand=True)
+
+        # HDR compatibility
+        if view_settings.is_hdr and image_settings.color_depth not in {'10', '12'}:
+            layout.label(text="HDR needs 10 or 12 bits", icon='ERROR')
+
+        # Color space
+        split = layout.split(factor=0.4)
+        col = split.column()
+        col.alignment = 'RIGHT'
+        col.label(text="Color Space")
+
+        col = split.column()
+        row = col.row()
+        row.enabled = False
+        row.prop(display_settings, "display_device", text="")
+
+        if ffmpeg.codec == 'DNXHD':
+            layout.prop(ffmpeg, "use_lossless_output")
+
+        if ffmpeg.codec == 'PRORES':
+            layout.prop(ffmpeg, "ffmpeg_prores_profile")
 
         # Output quality
-        use_crf = needs_codec and self.codec in {'H264', 'MPEG4', 'WEBM'}
+        use_crf = needs_codec and ffmpeg.codec in {
+            'H264',
+            'H265',
+            'MPEG4',
+            'WEBM',
+            'AV1',
+        }
         if use_crf:
-            layout.prop(self, "constant_rate_factor")
+            layout.prop(ffmpeg, "constant_rate_factor")
+
+        use_encoding_speed = needs_codec and ffmpeg.codec not in {'DNXHD', 'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
+        use_bitrate = needs_codec and ffmpeg.codec not in {'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
+        use_min_max_bitrate = ffmpeg.codec not in {'DNXHD'}
+        use_gop = needs_codec and ffmpeg.codec not in {'DNXHD', 'HUFFYUV', 'PNG', 'PRORES'}
+        use_b_frames = needs_codec and use_gop and ffmpeg.codec not in {'FFV1', 'QTRLE'}
 
         # Encoding speed
-        layout.prop(self, "ffmpeg_preset")
+        if use_encoding_speed:
+            layout.prop(ffmpeg, "ffmpeg_preset")
         # I-frames
-        layout.prop(self, "gopsize")
+        if use_gop:
+            layout.prop(ffmpeg, "gopsize")
         # B-Frames
-        row = layout.row(align=True, heading="Max B-frames")
-        row.prop(self, "use_max_b_frames", text="")
-        sub = row.row(align=True)
-        sub.active = self.use_max_b_frames
-        sub.prop(self, "max_b_frames", text="")
+        if use_b_frames:
+            row = layout.row(align=True, heading="Max B-frames")
+            row.prop(ffmpeg, "use_max_b_frames", text="")
+            sub = row.row(align=True)
+            sub.active = ffmpeg.use_max_b_frames
+            sub.prop(ffmpeg, "max_b_frames", text="")
 
-        if not use_crf or self.constant_rate_factor == 'NONE':
+        if (not use_crf or ffmpeg.constant_rate_factor == 'NONE') and use_bitrate:
             col = layout.column()
 
             sub = col.column(align=True)
-            sub.prop(self, "video_bitrate")
-            sub.prop(self, "minrate", text="Minimum")
-            sub.prop(self, "maxrate", text="Maximum")
+            sub.prop(ffmpeg, "video_bitrate")
+            if use_min_max_bitrate:
+                sub.prop(ffmpeg, "minrate", text="Minimum")
+                sub.prop(ffmpeg, "maxrate", text="Maximum")
 
-            col.prop(self, "buffersize", text="Buffer")
+                col.prop(ffmpeg, "buffersize", text="Buffer")
 
-            col.separator()
+                col.separator()
 
-            col.prop(self, "muxrate", text="Mux Rate")
-            col.prop(self, "packetsize", text="Mux Packet Size")
+                col.prop(ffmpeg, "muxrate", text="Mux Rate")
+                col.prop(ffmpeg, "packetsize", text="Mux Packet Size")
 
     def draw(self, context):
         layout = self.layout
@@ -289,25 +351,21 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         row = col.row()
         row.prop(self, 'color_mode', expand=True)
 
-        if self.file_format == 'AVI_JPEG':
-            col.prop(self, 'quality')
-    
-        elif self.file_format == 'FFMPEG':
-            col.label(text="Encoding:")
-            col.prop(self, 'format')
-            col.label(text="Video:")
-            self.draw_vcodec(context, box)
+        col.label(text="Encoding:")
+        col.prop(self, 'format')
+        col.label(text="Video:")
+        self.draw_vcodec(context, box)
 
-            col = box.column()
-            col.label(text="Audio:")
-            # if self.format != 'MP3':
-            col.prop(self, "audio_codec", text="Audio Codec")
+        col = box.column()
+        col.label(text="Audio:")
+        # if self.format != 'MP3':
+        col.prop(self, "audio_codec", text="Audio Codec")
 
-            if self.audio_codec != 'NONE':
-                col.prop(self, "audio_channels")
-                col.prop(self, "audio_mixrate", text="Sample Rate")
-                col.prop(self, "audio_bitrate")
-                col.prop(self, "audio_volume", slider=True)
+        if self.audio_codec != 'NONE':
+            col.prop(self, "audio_channels")
+            col.prop(self, "audio_mixrate", text="Sample Rate")
+            col.prop(self, "audio_bitrate")
+            col.prop(self, "audio_volume", slider=True)
 
 
 class MKVIDEO_OT_open_addon_prefs(bpy.types.Operator):
