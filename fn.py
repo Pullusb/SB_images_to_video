@@ -8,7 +8,7 @@ from pathlib import Path
 def vse_strips(vse=None):
     """return vse strips, version agnostic"""
     vse = vse or bpy.context.scene.sequence_editor
-    if getattr(vse, "strips", None): # bpy.app.version >= (5,0,0):
+    if bpy.app.version >= (5,0,0): # getattr(vse, "strips", None):
         return vse.strips
     else:
         return vse.sequences
@@ -16,7 +16,7 @@ def vse_strips(vse=None):
 def vse_strips_all(vse=None):
     """return vse strips (recursive in meta strips), version agnostic"""
     vse = vse or bpy.context.scene.sequence_editor
-    if getattr(vse, "strips_all", None): # bpy.app.version >= (5,0,0):
+    if bpy.app.version >= (5,0,0): # getattr(vse, "strips_all", None):
         return vse.strips_all
     else:
         return vse.sequences_all
