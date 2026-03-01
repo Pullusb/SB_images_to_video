@@ -182,14 +182,14 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
         ## ~copy~ link over sounds strip that might exists in other scene.
         svse = src_scn.sequence_editor
         if svse:
-            for s in svse.sequences_all:
+            for s in fn.vse_strips_all(svse):
                 if s.type != 'SOUND':
                     continue
 
                 ## TODO check if there is a way to directly link a strip (would be awesome)
-                ns = vse.sequences.new_sound(name=s.name, filepath=s.sound.filepath, channel=s.channel, frame_start=int(s.frame_start))
+                ns = fn.vse_strips(vse).new_sound(name=s.name, filepath=s.sound.filepath, channel=s.channel, frame_start=int(s.frame_start))
                 ns.sound = s.sound # reget the same sound source
-                
+
                 for attr in ('frame_final_start','frame_final_end','frame_still_start','frame_still_end','frame_offset_start','frame_offset_end','pitch','pan','show_waveform','speed_factor','volume','mute'):
                     if hasattr(s, attr):
                         setattr(ns, attr, getattr(s, attr))
@@ -345,7 +345,7 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
         ## Extra quality of life
         if self.add_text_strip:
             text_chan = fn.get_next_available_channel(scn=montage_scn, start_from=5)
-            text_strip = vse.sequences.new_effect(
+            text_strip = fn.vse_strips(vse).new_effect(
                     'Text', type='TEXT', channel=text_chan, 
                     frame_start=montage_scn.frame_start, frame_end=montage_scn.frame_end + 1)
 
