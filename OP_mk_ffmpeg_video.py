@@ -1,6 +1,7 @@
 import bpy
 import os
 import sys
+import shlex
 from pathlib import Path
 import subprocess
 from . import fn
@@ -133,12 +134,13 @@ class MKVIDEO_OT_makeVideo(bpy.types.Operator):
         print('-- ffmpeg command --')
         print(' '.join(cmd))
         
-        shell_state = True
-        ## shell at True had some problem in the past (but needed to chain commands)
-        # if sys.platform.startswith('linux'):
-        #     shell_state = False
+        ## On Linux/Mac, shell=True requires a string (not a list), otherwise only
+        ## the first element is used as the command and the rest become shell positional args.
+        ## (shlex.quote uses Unix single-quotes, not suitable for Windows cmd.exe)
+        if not sys.platform.startswith('win'):
+            cmd = ' '.join(shlex.quote(c) for c in cmd)
 
-        subprocess.Popen(cmd, shell=shell_state, stderr=subprocess.STDOUT)
+        subprocess.Popen(cmd, shell=True, stderr=subprocess.STDOUT)
 
         return {'FINISHED'}
 
