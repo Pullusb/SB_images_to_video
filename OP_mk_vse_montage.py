@@ -23,7 +23,6 @@ def set_video_export_settings(scn):
         "format",
         "codec",
         "constant_rate_factor",
-        "ffmpeg_preset",
         "ffmpeg_prores_profile",
         "gopsize",
         "use_max_b_frames",
@@ -41,6 +40,7 @@ def set_video_export_settings(scn):
         "audio_bitrate",
         "audio_volume",
         "audio_mixrate",
+        # "ffmpeg_preset",
     ]
 
     for attr in im_settings_attr:
@@ -173,11 +173,15 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
             video_wk_path = Path(bpy.utils.resource_path('LOCAL'), 'scripts/startup/bl_app_templates_system/Video_Editing/startup.blend')
             if video_wk_path.exists:
                 bpy.ops.workspace.append_activate(idname='Video Editing', filepath=str(video_wk_path))
+                video_wk = bpy.data.workspaces.get('Video Editing')
             else:
                 print('Video Editing workspace file not found. No workspace switch')
 
         ## import images in VSE and set in / out (reuse frame rate from active scene)
         vse = montage_scn.sequence_editor_create()
+        ## Set montage scene on vse block of video Editing workspace
+        if video_wk:
+            video_wk.sequencer_scene = montage_scn
 
         ## ~copy~ link over sounds strip that might exists in other scene.
         svse = src_scn.sequence_editor
@@ -207,19 +211,6 @@ class MKVIDEO_OT_gen_montage_scene(bpy.types.Operator):
             video_name = video_name + "_" + str(len(check) + 1).zfill(2)
         montage_scn.render.filepath = str(outpath.parent / video_name)
 
-        # Switching sequencer scene does not work...
-        # bpy.context.workspace.sequencer_scene = montage_scn
-
-        ## Do not work as well
-        # for window in bpy.context.window_manager.windows:
-        #     window.workspace.sequencer_scene = montage_scn
-
-        ## Try using timer, do not work too...
-        # def _set_sequencer_scene(scn=montage_scn):
-        #     for window in bpy.context.window_manager.windows:
-        #         window.workspace.sequencer_scene = scn
-        #     return None
-        # bpy.app.timers.register(_set_sequencer_scene, first_interval=0.8)
         return {'FINISHED'}
 
 
