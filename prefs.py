@@ -25,17 +25,18 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
     ) # N/nothing,)
 
     ## Stored preferences for video scene settings
-    
-    file_format : EnumProperty(
-        name='File Format',
+
+    color_depth : bpy.props.EnumProperty(
+        name='Color Depth',
+        default='8',
+        description='Bit depth per channel',
         items=(
-            ('AVI_JPEG', 'AVI JPEG', 'Output video in AVI JPEG format'),
-            ('AVI_RAW', 'AVI Raw', 'Output video in AVI Raw format'),
-            ('FFMPEG', 'FFmpeg Video', 'The most versatile way to output video files'),
-        ),
-        default='FFMPEG',
-        description='File format to save the rendered images as',
-    )
+            ('8', '8', '8-bit color channels'),
+            ('10', '10', '10-bit color channels'),
+            ('12', '12', '12-bit color channels'),
+            ('16', '16', '16-bit color channels'),
+            ('32', '32', '32-bit color channels'),
+        ),)
 
     color_mode : EnumProperty(
         name='Color Mode',
@@ -73,19 +74,22 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         description='FFmpeg codec to use for video output',
         items=(
             ('NONE', 'No Video', 'Disables video output, for audio-only renders'),
+            ('AV1', 'AV1', ''),
             ('DNXHD', 'DNxHD', ''),
             ('DV', 'DV', ''),
             ('FFV1', 'FFmpeg video codec #1', ''),
             ('FLASH', 'Flash Video', ''),
             ('H264', 'H.264', ''),
+            ('H265', 'H.265 / HEVC', ''),
             ('HUFFYUV', 'HuffYUV', ''),
             ('MPEG1', 'MPEG-1', ''),
             ('MPEG2', 'MPEG-2', ''),
             ('MPEG4', 'MPEG-4 (divx)', ''),
             ('PNG', 'PNG', ''),
-            ('QTRLE', 'QT rle / QT Animation', ''),
+            ('PRORES', 'ProRes', ''),
+            ('QTRLE', 'QuickTime Animation', ''),
             ('THEORA', 'Theora', ''),
-            ('WEBM', 'WEBM / VP9', ''),
+            ('WEBM', 'WebM / VP9', ''),
             ),)
 
     constant_rate_factor : bpy.props.EnumProperty(
@@ -112,7 +116,20 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
             ('GOOD', 'Good', 'The default and recommended for most applications'),
             ('REALTIME', 'Realtime', 'Recommended for fast encoding'),
             ),)
-    
+
+    ffmpeg_prores_profile : bpy.props.EnumProperty(
+        name='Profile',
+        default='422_STD',
+        description='ProRes Profile',
+        items=(
+            ('422_PROXY', 'ProRes 422 Proxy', ''),
+            ('422_LT', 'ProRes 422 LT', ''),
+            ('422_STD', 'ProRes 422', ''),
+            ('422_HQ', 'ProRes 422 HQ', ''),
+            ('4444', 'ProRes 4444', ''),
+            ('4444_XQ', 'ProRes 4444 XQ', ''),
+            ),)
+
     gopsize : IntProperty(name='Keyframe Interval',
         description='Distance between key frames, also known as GOP size; influences file size and seekability',
         default=18, min=0, max=500, step=1, options={'HIDDEN'})
@@ -203,7 +220,8 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
     audio_volume : FloatProperty(
         name='Volume',
         default=1.0, min=0.0, max=1.0,
-        description='Audio volume',)
+        description='Audio volume',
+        step=10.0, precision=3,)
     
     audio_mixrate : IntProperty(
         name='Samplerate',
@@ -211,11 +229,11 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         description='Audio samplerate(samples/s)',)
     
 
-    def draw_vcodec(self, context):
+    def draw_vcodec(self, context, box):
         """Video codec options."""
-        layout = self.layout
+        layout = box # self.layout
         ## reusing native panel with pref properties
-        ffmpeg = self# context.scene.render.ffmpeg
+        ffmpeg = self # context.scene.render.ffmpeg
 
         needs_codec = ffmpeg.format in {
             'AVI',
@@ -231,39 +249,40 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         if needs_codec and ffmpeg.codec == 'NONE':
             return
 
-        image_settings = context.scene.render.image_settings
+        image_settings = self # context.scene.render.image_settings
 
-        if image_settings.color_management == 'OVERRIDE':
-            display_settings = image_settings.display_settings
-            view_settings = image_settings.view_settings
-        else:
-            display_settings = context.scene.display_settings
-            view_settings = context.scene.view_settings
+        # if image_settings.color_management == 'OVERRIDE':
+        #     display_settings = image_settings.display_settings
+        #     view_settings = image_settings.view_settings
+        # else:
+        #     display_settings = context.scene.display_settings
+        #     view_settings = context.scene.view_settings
 
         # HDR compatibility
-        if view_settings.is_hdr and (not needs_codec or ffmpeg.codec not in {'H265', 'AV1'}):
-            layout.label(text="HDR needs H.265 or AV1", icon='ERROR')
+        # if view_settings.is_hdr and (not needs_codec or ffmpeg.codec not in {'H265', 'AV1'}):
+        #     layout.label(text="HDR needs H.265 or AV1", icon='ERROR')
 
         # Color depth. List of codecs needs to be in sync with
         # `IMB_ffmpeg_valid_bit_depths` in source code.
         use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1', 'PRORES', 'FFV1'}
         if use_bpp:
-            layout.prop(image_settings, "color_depth", expand=True)
+            row=layout.row()
+            row.prop(image_settings, "color_depth", expand=True)
 
         # HDR compatibility
-        if view_settings.is_hdr and image_settings.color_depth not in {'10', '12'}:
-            layout.label(text="HDR needs 10 or 12 bits", icon='ERROR')
+        # if view_settings.is_hdr and image_settings.color_depth not in {'10', '12'}:
+        #     layout.label(text="HDR needs 10 or 12 bits", icon='ERROR')
 
         # Color space
-        split = layout.split(factor=0.4)
-        col = split.column()
-        col.alignment = 'RIGHT'
-        col.label(text="Color Space")
+        # split = layout.split(factor=0.4)
+        # col = split.column()
+        # col.alignment = 'RIGHT'
+        # col.label(text="Color Space")
 
-        col = split.column()
-        row = col.row()
-        row.enabled = False
-        row.prop(display_settings, "display_device", text="")
+        # col = split.column()
+        # row = col.row()
+        # row.enabled = False
+        # row.prop(display_settings, "display_device", text="")
 
         if ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")
@@ -347,7 +366,6 @@ class imgs2videoPreferences(bpy.types.AddonPreferences):
         box.label(text="Settings for sequencer creation:")
         ## compact draw (to delete)
         col = box.column()
-        col.prop(self, 'file_format')
         row = col.row()
         row.prop(self, 'color_mode', expand=True)
 

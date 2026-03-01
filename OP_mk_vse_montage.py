@@ -5,19 +5,42 @@ from pathlib import Path
 from bpy_extras.io_utils import ImportHelper
 from . import fn
 
+## TODO: update for Blender 5.0 API
 def set_video_export_settings(scn):
     prefs = fn.get_prefs()
-    im_settings_attr = ['file_format','color_mode','quality']
-    ff_attr = ['format','codec','constant_rate_factor','ffmpeg_preset','gopsize','use_max_b_frames','max_b_frames','use_lossless_output','video_bitrate','minrate','maxrate','muxrate','packetsize','buffersize','use_autosplit','audio_codec','audio_channels','audio_bitrate','audio_volume','audio_mixrate']
-    
+    im_settings_attr = ["color_mode", "quality", "color_depth"]
+    ff_attr = [
+        "format",
+        "codec",
+        "constant_rate_factor",
+        "ffmpeg_preset",
+        "ffmpeg_prores_profile",
+        "gopsize",
+        "use_max_b_frames",
+        "max_b_frames",
+        "use_lossless_output",
+        "video_bitrate",
+        "minrate",
+        "maxrate",
+        "muxrate",
+        "packetsize",
+        "buffersize",
+        "use_autosplit",
+        "audio_codec",
+        "audio_channels",
+        "audio_bitrate",
+        "audio_volume",
+        "audio_mixrate",
+    ]
+
     for attr in im_settings_attr:
         if hasattr(scn.render.image_settings, attr):
             setattr(scn.render.image_settings, attr, getattr(prefs, attr))
-    
+
     for attr in ff_attr:
         if hasattr(scn.render.ffmpeg, attr):
             setattr(scn.render.ffmpeg, attr, getattr(prefs, attr))
-    
+
     # disable Lut
     scn.view_settings.view_transform = 'Standard'
     scn.render.use_sequencer = True
@@ -319,7 +342,6 @@ class MKVIDEO_OT_gen_montage_from_folder(bpy.types.Operator, ImportHelper):
             text_strip.text = f'{cl_name} - {montage_scn.render.resolution_x}x{montage_scn.render.resolution_y} - {montage_scn.render.fps} fps'
 
         return {'FINISHED'}
-
 
 
 classes = (
