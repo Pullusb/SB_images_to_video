@@ -1,5 +1,9 @@
 # Changelog
 
+3.0.0
+
+- fixed: update for Blender 5.0 (not retrocompatible)
+
 2.5.0
 
 - added: option in preferences to remove suffix from videos generated directly with ffmpeg

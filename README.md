@@ -9,7 +9,11 @@ Add buttons in Blender UI to create a video from rendered images sequence in one
 
 **[Download latest from github](https://github.com/Pullusb/SB_images_to_video/archive/refs/heads/master.zip)**
 
-For older blender 2.7 version go [here](https://github.com/Pullusb/SB_blender_addons_old_2_7)
+Latest is only compatible with Blender 5+
+
+For older blender version (2.9 to 4.5) use the [2.5.0 release](https://github.com/Pullusb/SB_images_to_video/releases/tag/2.5.0)
+
+For even older blender (2.7) go [here](https://github.com/Pullusb/SB_blender_addons_old_2_7)
 
 
 If you want to support me you can go on:
